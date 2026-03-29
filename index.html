@@ -1159,25 +1159,6 @@ function renderDashboard() {
   var html = '<div class="sec-title">DASHBOARD</div>';
   html += '<div class="sec-sub">Semáforo de autorregulación — última sesión por atleta</div>';
 
-  // DEBUG PANEL — remove after fixing
-  var totalLogs = Object.keys(LOGS).length;
-  var completedLogs = Object.values(LOGS).filter(function(l){ return l.completed; }).length;
-  var trainerLogs = Object.values(LOGS).filter(function(l){ return l.trainerId === TRAINER_CODE; }).length;
-  html += '<div id="debug-panel" style="background:var(--surface2);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;margin-bottom:14px;font-size:11px;font-family:monospace;color:var(--dim)">';
-  html += '<div style="color:var(--accent);font-weight:700;margin-bottom:6px">DEBUG (temporal)</div>';
-  html += 'TRAINER_CODE: <strong style="color:var(--text)">'+TRAINER_CODE+'</strong><br>';
-  html += 'Total LOGS en memoria: <strong style="color:var(--text)">'+totalLogs+'</strong><br>';
-  html += 'Logs completados: <strong style="color:var(--text)">'+completedLogs+'</strong><br>';
-  html += 'Logs con este trainerId: <strong style="color:var(--text)">'+trainerLogs+'</strong><br>';
-  html += 'Atletas en memoria: <strong style="color:var(--text)">'+Object.keys(ATHLETES).length+'</strong><br>';
-  if (totalLogs > 0) {
-    var sample = Object.values(LOGS)[0];
-    html += 'Sample log trainerId: <strong style="color:var(--orange)">'+sample.trainerId+'</strong><br>';
-    html += 'Sample log athleteId: <strong style="color:var(--orange)">'+sample.athleteId+'</strong><br>';
-    html += 'Sample log completed: <strong style="color:var(--orange)">'+sample.completed+'</strong>';
-  }
-  html += '</div>';
-
   // Invite box (collapsed by default)
   html += '<div style="margin-bottom:16px">';
   html += '<div class="ath-invite-box" style="cursor:pointer" onclick="toggleSess(\'invite-body\',\'invite-chv\')">';
