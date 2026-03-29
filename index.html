@@ -2104,6 +2104,8 @@ var ALIASES = {
   series:       ['series','sets'],
   reps:         ['reps','repeticiones','rep','repeticion'],
   rir:          ['rir','rpe','rir/rpe'],
+  kg:           ['kg','peso','peso kg','peso (kg)','carga','weight'],
+  kg:           ['kg','peso','peso kg','peso (kg)','carga','weight'],
   tempo:        ['tempo'],
   descanso:     ['descanso','rest','resttime','descanso (min)','descanso(min)'],
   indicaciones: ['indicaciones','notes','observaciones','obs','indicacion']
@@ -2162,6 +2164,7 @@ function rowsFromSheet(sheet) {
       series:       parseInt(get('series'))||3,
       reps:         get('reps') || '10',
       rir:          get('rir'),
+      kg:           get('kg'),
       tempo:        get('tempo'),
       descanso:     get('descanso'),
       indicaciones: get('indicaciones')
@@ -2193,9 +2196,9 @@ function handleXLSXFile(input) {
 function processParsedRows(rows) {
   csvParsedData = rows;
 
-  var previewHtml = '<table><tr><th>Sem</th><th>Sesión</th><th>Ejercicio</th><th>Series</th><th>Reps</th><th>RIR</th><th>Obs</th></tr>';
+  var previewHtml = '<table><tr><th>Sem</th><th>Sesión</th><th>Ejercicio</th><th>Series</th><th>Reps</th><th>Kg</th><th>RIR</th><th>Obs</th></tr>';
   rows.slice(0,10).forEach(function(r) {
-    previewHtml += '<tr><td>'+r.semana+'</td><td>'+r.sesion+'</td><td>'+r.ejercicio+'</td><td>'+r.series+'</td><td>'+r.reps+'</td><td>'+(r.rir||'-')+'</td><td>'+(r.indicaciones||r.tempo||'')+'</td></tr>';
+    previewHtml += '<tr><td>'+r.semana+'</td><td>'+r.sesion+'</td><td>'+r.ejercicio+'</td><td>'+r.series+'</td><td>'+r.reps+'</td><td>'+(r.kg||'-')+'</td><td>'+(r.rir||'-')+'</td><td>'+(r.indicaciones||r.tempo||'')+'</td></tr>';
   });
   if (rows.length > 10) previewHtml += '<tr><td colspan="7" style="color:var(--text-muted);text-align:center">... y '+(rows.length-10)+' filas mas</td></tr>';
   previewHtml += '</table>';
@@ -2245,7 +2248,7 @@ function importCSV() {
         muscleGroup: r.grupo || '',
         targetSets: r.series,
         guideReps: repsNum,
-        guideWeight: 0,
+        guideWeight: parseFloat(r.kg) || 0,
         guideRir: parseInt(r.rir) || 2,
         tempo: r.tempo || '',
         restTime: r.descanso || '',
