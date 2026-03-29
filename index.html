@@ -2105,7 +2105,6 @@ var ALIASES = {
   reps:         ['reps','repeticiones','rep','repeticion'],
   rir:          ['rir','rpe','rir/rpe'],
   kg:           ['kg','peso','peso kg','peso (kg)','carga','weight'],
-  kg:           ['kg','peso','peso kg','peso (kg)','carga','weight'],
   tempo:        ['tempo'],
   descanso:     ['descanso','rest','resttime','descanso (min)','descanso(min)'],
   indicaciones: ['indicaciones','notes','observaciones','obs','indicacion']
@@ -2278,23 +2277,23 @@ function importCSV() {
 
 function downloadXLSXTemplate() {
   var data = [
-    ['Semana','Sesión','Ejercicio','Grupo','Series','Reps','RIR','Tempo','Descanso','Indicaciones'],
-    [1,'Sesion 1','Press Banca Plano','Pecho',4,8,2,'2-1-0-1','3\'',''],
-    [1,'Sesion 1','Press Inclinado Mancuernas','Pecho',3,10,2,'','2\'','Bajar controlado'],
-    [1,'Sesion 1','Press Militar Barra','Hombro',4,8,2,'','2\'',''],
-    [1,'Sesion 1','Extensiones Triceps Polea','Triceps',3,12,2,'','2\'',''],
-    [1,'Sesion 2','Peso Muerto Rumano','Isquio',4,10,2,'3-1-0-0','3\'','Pausa 1" abajo'],
-    [1,'Sesion 2','Remo con Barra','Espalda',4,10,2,'','2\'',''],
-    [1,'Sesion 2','Dominadas con Lastre','Espalda',3,8,2,'','2\'',''],
-    [1,'Sesion 2','Curl de Biceps Barra','Biceps',3,12,2,'','2\'',''],
-    [2,'Sesion 1','Press Banca Plano','Pecho',4,8,2,'2-1-0-1','3\'',''],
-    [2,'Sesion 1','Press Inclinado Mancuernas','Pecho',4,10,2,'','2\'','Bajar controlado'],
-    [2,'Sesion 2','Peso Muerto Rumano','Isquio',4,10,2,'3-1-0-0','3\'','Pausa 1" abajo'],
-    [2,'Sesion 2','Remo con Barra','Espalda',4,10,2,'','2\'','']
+    ['Semana','Sesion','Ejercicio','Grupo','Series','Reps','Kg','RIR','Tempo','Descanso','Indicaciones'],
+    [1,'Sesion 1','Press Banca Plano','Pecho',4,8,80,2,'2-1-0-1',"3'",''],
+    [1,'Sesion 1','Press Inclinado Mancuernas','Pecho',3,10,24,2,'','2"','Bajar controlado'],
+    [1,'Sesion 1','Press Militar Barra','Hombro',4,8,50,2,'','2"',''],
+    [1,'Sesion 1','Extensiones Triceps Polea','Triceps',3,12,30,2,'','2"',''],
+    [1,'Sesion 2','Peso Muerto Rumano','Isquio',4,10,90,2,'3-1-0-0',"3'",'Pausa 1 abajo'],
+    [1,'Sesion 2','Remo con Barra','Espalda',4,10,70,2,'','2"',''],
+    [1,'Sesion 2','Dominadas con Lastre','Espalda',3,8,10,2,'','2"',''],
+    [1,'Sesion 2','Curl de Biceps Barra','Biceps',3,12,40,2,'','2"',''],
+    [2,'Sesion 1','Press Banca Plano','Pecho',4,8,82,2,'2-1-0-1',"3'",''],
+    [2,'Sesion 1','Press Inclinado Mancuernas','Pecho',4,10,26,2,'','2"','Bajar controlado'],
+    [2,'Sesion 2','Peso Muerto Rumano','Isquio',4,10,92,2,'3-1-0-0',"3'",'Pausa 1 abajo'],
+    [2,'Sesion 2','Remo con Barra','Espalda',4,10,72,2,'','2"','']
   ];
   var ws = XLSX.utils.aoa_to_sheet(data);
   // Style header row width
-  ws['!cols'] = [{wch:8},{wch:12},{wch:28},{wch:14},{wch:8},{wch:8},{wch:6},{wch:10},{wch:10},{wch:30}];
+  ws['!cols'] = [{wch:8},{wch:12},{wch:28},{wch:14},{wch:8},{wch:8},{wch:8},{wch:6},{wch:10},{wch:10},{wch:30}];
   var wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Rutina');
   XLSX.writeFile(wb, 'FORGE_plantilla.xlsx');
