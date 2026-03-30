@@ -371,7 +371,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="role-card" onclick="selectRole('athlete')">
           <div class="role-card-icon">&#127947;</div>
           <div class="role-card-title">Atleta</div>
-          <div class="role-card-sub">Registro mis entrenamientos</div>
+          <div class="role-card-sub">Tengo entrenador — registro mis entrenamientos</div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="role-card" onclick="selectRole('autonomous')" style="border-color:rgba(197,242,48,.3);background:rgba(197,242,48,.04)">
+          <div class="role-card-icon">&#127919;</div>
+          <div class="role-card-title" style="color:var(--accent)">Atleta Autónomo</div>
+          <div class="role-card-sub">Me entreno solo — armo mis propias rutinas y registro mi progreso</div>
         </div>
       </div>
     </div>
@@ -389,6 +396,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="setup-note"><strong>Tu entrenador te va a dar un código de 6 letras.</strong><br>Ingresalo para vincularte a su cuenta.</div>
       <div class="fg"><label>Código del entrenador</label><input type="text" id="athlete-code-input" placeholder="Ej: ABC123" style="text-transform:uppercase;letter-spacing:3px;font-size:18px;text-align:center"></div>
       <button class="btn btn-p btn-full" onclick="loginAthlete()">Vincularme al entrenador</button>
+      <div style="margin-top:10px;text-align:center"><button class="btn-logout" onclick="backToRoles()">&#8592; Volver</button></div>
+    </div>
+
+    <!-- STEP 3c: Autonomous athlete (first time) -->
+    <div id="step-autonomous" style="display:none">
+      <div class="setup-note">Vas a tener tu propio espacio para armar rutinas y registrar tu progreso. Sin entrenador, sin código.</div>
+      <div class="fg"><label>Tu nombre</label><input type="text" id="autonomous-name-input" placeholder="Ej: Juan Garcia"></div>
+      <button class="btn btn-p btn-full" onclick="loginAutonomous()">Crear mi espacio de entrenamiento</button>
       <div style="margin-top:10px;text-align:center"><button class="btn-logout" onclick="backToRoles()">&#8592; Volver</button></div>
     </div>
   </div>
@@ -633,7 +648,7 @@ function hideAuthError() {
 }
 
 function showStep(stepId) {
-  ['step-auth','step-role','step-trainer','step-athlete'].forEach(function(id) {
+  ['step-auth','step-role','step-trainer','step-athlete','step-autonomous'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = (id === stepId) ? 'block' : 'none';
   });
@@ -705,11 +720,15 @@ document.addEventListener('keydown', function(e) {
 });
 
 function selectRole(role) {
+  var name = PENDING_GOOGLE_USER ? (PENDING_GOOGLE_USER.displayName || '') : '';
   if (role === 'trainer') {
-    var name = PENDING_GOOGLE_USER ? (PENDING_GOOGLE_USER.displayName || '') : '';
     var inp = document.getElementById('trainer-name-input');
     if (inp) inp.value = name;
     showStep('step-trainer');
+  } else if (role === 'autonomous') {
+    var inp2 = document.getElementById('autonomous-name-input');
+    if (inp2) inp2.value = name;
+    showStep('step-autonomous');
   } else {
     showStep('step-athlete');
   }
@@ -768,6 +787,39 @@ function loginAthlete() {
         loadAthleteApp();
         if(window.trackEvent) trackEvent('login',{role:'athlete'});
       });
+    });
+  });
+}
+
+function loginAutonomous() {
+  if (!PENDING_GOOGLE_USER) { showAuthError('Error: no hay sesión activa.'); return; }
+  var name = document.getElementById('autonomous-name-input').value.trim();
+  if (!name) { alert('Ingresá tu nombre.'); return; }
+  var uid = PENDING_GOOGLE_USER.uid;
+
+  DB.ref('forge/users/' + uid).once('value').then(function(snap) {
+    if (snap.exists() && snap.val().role === 'autonomous') {
+      var d = snap.val();
+      ROLE='autonomous'; TRAINER_CODE=d.trainerCode; ATHLETE_ID=d.athleteId;
+      USER_NAME=d.name; CURRENT_UID=uid;
+      loadAutonomousApp();
+      if(window.trackEvent) trackEvent('login',{role:'autonomous'});
+      return;
+    }
+    var code = genCode();
+    var athleteId = code + '_self';
+    var profile = { role:'autonomous', trainerCode:code, athleteId:athleteId,
+      name:name, email:PENDING_GOOGLE_USER.email||'', createdAt:new Date().toISOString() };
+    DB.ref('forge/users/'+uid).set(profile).then(function() {
+      // Create trainer node + self-athlete
+      DB.ref('forge/trainers/'+code).set({ name:name, code:code, createdAt:new Date().toISOString() });
+      DB.ref('forge/trainers/'+code+'/athletes/'+athleteId).set({
+        name:name, joinedAt:new Date().toISOString(), assignedMesoId:null
+      });
+      ROLE='autonomous'; TRAINER_CODE=code; ATHLETE_ID=athleteId;
+      USER_NAME=name; CURRENT_UID=uid;
+      loadAutonomousApp();
+      if(window.trackEvent) trackEvent('login',{role:'autonomous',new_user:true});
     });
   });
 }
@@ -892,6 +944,68 @@ function loadAthleteApp() {
 }
 
 // ═══════════════════════════════════════
+// LOAD AUTONOMOUS APP
+// ═══════════════════════════════════════
+function loadAutonomousApp() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').style.display = 'block';
+
+  document.getElementById('role-badge-hdr').innerHTML =
+    '<span class="role-badge role-trainer" style="background:rgba(197,242,48,.12);color:var(--accent);border-color:rgba(197,242,48,.4)">&#127919;<span class="badge-text"> Autónomo</span></span>';
+
+  document.getElementById('main-nav').innerHTML =
+    '<button id="tab-plan" onclick="switchTab(\'plan\')">Plan</button>' +
+    '<button id="tab-session" onclick="switchTab(\'session\')">Sesión</button>' +
+    '<button id="tab-stats" onclick="switchTab(\'stats\')">Stats</button>' +
+    '<button id="tab-health" onclick="switchTab(\'health\')">Salud</button>';
+
+  // Subscribe to own trainer data (mesocycles)
+  var trainerRef = DB.ref('forge/trainers/' + TRAINER_CODE);
+  var handler = trainerRef.on('value', function(snap) {
+    var data = snap.val() || {};
+    var mesoObj = data.mesocycles || {};
+    S.mesocycles = Object.values(mesoObj).map(function(m){ return normalizeMeso(m); });
+    S.activeMesoId = data.activeMesoId || (S.mesocycles.length ? S.mesocycles[0].id : null);
+    ATHLETES = data.athletes || {};
+
+    // Auto-assign active meso to self
+    var selfAth = ATHLETES[ATHLETE_ID];
+    if (selfAth && S.activeMesoId && selfAth.assignedMesoId !== S.activeMesoId) {
+      DB.ref('forge/trainers/'+TRAINER_CODE+'/athletes/'+ATHLETE_ID+'/assignedMesoId').set(S.activeMesoId);
+    }
+
+    // Set ASSIGNED_MESO for session view
+    var assignedId = selfAth ? selfAth.assignedMesoId : null;
+    if (!assignedId && S.activeMesoId) assignedId = S.activeMesoId;
+    ASSIGNED_MESO = assignedId ? (S.mesocycles.filter(function(m){ return m.id===assignedId; })[0] || null) : null;
+
+    if (activeTab === 'plan') renderPlan();
+    if (activeTab === 'session') renderSession();
+    if (activeTab === 'dashboard') renderDashboard();
+  });
+  unsubHandlers.push(function() { trainerRef.off('value', handler); });
+
+  // Subscribe to own logs
+  var logsRef = DB.ref('forge/logs');
+  var logsHandler = logsRef.on('value', function(snap) {
+    LOGS = {};
+    snap.forEach(function(child) {
+      var log = normalizeLog(child.val());
+      if (log && log.trainerId === TRAINER_CODE) LOGS[child.key] = log;
+    });
+    if (activeTab === 'stats') renderStats();
+    if (activeTab === 'health') renderHealth();
+  });
+  unsubHandlers.push(function() { logsRef.off('value', logsHandler); });
+
+  // Restore current workout
+  var savedCW = localStorage.getItem('forge_cw_' + ATHLETE_ID);
+  if (savedCW) { try { CW = JSON.parse(savedCW); } catch(e) { CW = null; } }
+
+  switchTab('session');
+}
+
+// ═══════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════
 function switchTab(tab) {
@@ -922,6 +1036,11 @@ function saveMesocycles() {
   S.mesocycles.forEach(function(m) { mesoObj[m.id] = m; });
   DB.ref('forge/trainers/' + TRAINER_CODE + '/mesocycles').set(mesoObj);
   DB.ref('forge/trainers/' + TRAINER_CODE + '/activeMesoId').set(S.activeMesoId);
+  // For autonomous: keep self auto-assigned to active meso
+  if (ROLE === 'autonomous' && S.activeMesoId && ATHLETE_ID) {
+    DB.ref('forge/trainers/'+TRAINER_CODE+'/athletes/'+ATHLETE_ID+'/assignedMesoId').set(S.activeMesoId);
+    ASSIGNED_MESO = S.mesocycles.filter(function(m){ return m.id===S.activeMesoId; })[0] || null;
+  }
 }
 
 function saveLog(log) {
@@ -977,7 +1096,7 @@ function getAthleteLogs(athleteId) {
 }
 
 function getMyLogs() {
-  return Object.values(LOGS).filter(function(l) { return l.athleteId === ATHLETE_ID && l.completed; }).sort(function(a,b) { return a.date.localeCompare(b.date); });
+  return Object.values(LOGS).filter(function(l) { return l.athleteId === ATHLETE_ID && l.completed; }).sort(function(a,b) { return a.date.localeCompare(b.date); }); // used by athlete + autonomous
 }
 
 function getLastWeightForEx(logs, exId) {
@@ -1059,7 +1178,7 @@ function getExSemaphore(log, ex, exDef) {
 // ═══════════════════════════════════════
 function renderPlan() {
   var el = document.getElementById('section-plan');
-  if (ROLE !== 'trainer') { el.innerHTML = ''; return; }
+  if (ROLE !== 'trainer' && ROLE !== 'autonomous') { el.innerHTML = ''; return; }
 
   var meso = getMeso();
   var mesoOptions = S.mesocycles.map(function(m) {
@@ -1258,7 +1377,7 @@ function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 // ═══════════════════════════════════════
 function renderDashboard() {
   var el = document.getElementById('section-dashboard');
-  if (ROLE !== 'trainer') { el.innerHTML = ''; return; }
+  if (ROLE !== 'trainer' && ROLE !== 'autonomous') { el.innerHTML = ''; return; }
   var athleteList = Object.keys(ATHLETES);
 
   var html = '<div class="sec-title">DASHBOARD</div>';
@@ -1814,6 +1933,7 @@ function renderStats() {
 
   var allLogs = Object.values(LOGS).filter(function(l) {
     if (ROLE === 'athlete') return l.athleteId === ATHLETE_ID && l.completed;
+    if (ROLE === 'autonomous') return l.athleteId === ATHLETE_ID && l.completed;
     return l.trainerId === TRAINER_CODE && l.completed;
   });
 
@@ -1955,7 +2075,7 @@ function buildCharts(logs) {
 // ═══════════════════════════════════════
 function renderHealth() {
   var el = document.getElementById('section-health');
-  var myLogs = getMyLogs().filter(function(l) { return l.health; });
+  var myLogs = getMyLogs().filter(function(l) { return l.health; }); // works for athlete and autonomous
 
   var html = '<div class="sec-title">BIENESTAR</div><div class="sec-sub">Tu estado fisico y su relacion con el rendimiento</div>';
 
@@ -2633,6 +2753,10 @@ window.onload = function() {
       if (ROLE === 'trainer') {
         loadTrainerApp();
         if(window.trackEvent) trackEvent('session_restore', {role:'trainer'});
+      } else if (ROLE === 'autonomous') {
+        ATHLETE_ID = userData.athleteId;
+        loadAutonomousApp();
+        if(window.trackEvent) trackEvent('session_restore', {role:'autonomous'});
       } else {
         ATHLETE_ID = userData.athleteId;
         loadAthleteApp();
