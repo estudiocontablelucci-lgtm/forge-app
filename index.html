@@ -634,7 +634,9 @@ function showStep(stepId) {
 
 function signInWithGoogle() {
   var provider = new firebase.auth.GoogleAuthProvider();
-  AUTH.signInWithPopup(provider).catch(function(err) {
+  // signInWithRedirect es más confiable en GitHub Pages y mobile
+  // El resultado se captura en onAuthStateChanged al volver
+  AUTH.signInWithRedirect(provider).catch(function(err) {
     showAuthError('Error al iniciar sesión: ' + err.message);
   });
 }
