@@ -726,9 +726,17 @@ function selectRole(role) {
     if (inp) inp.value = name;
     showStep('step-trainer');
   } else if (role === 'autonomous') {
-    var inp2 = document.getElementById('autonomous-name-input');
-    if (inp2) inp2.value = name;
-    showStep('step-autonomous');
+    // Try to get name from auth registration form first
+    var authName = (document.getElementById('auth-name') || {}).value || '';
+    var resolvedName = authName.trim() || name;
+    if (resolvedName) {
+      // We already have a name — skip the step and register directly
+      var fakeInput = { value: resolvedName };
+      document.getElementById('autonomous-name-input') && (document.getElementById('autonomous-name-input').value = resolvedName);
+      loginAutonomous(resolvedName);
+    } else {
+      showStep('step-autonomous');
+    }
   } else {
     showStep('step-athlete');
   }
@@ -791,9 +799,10 @@ function loginAthlete() {
   });
 }
 
-function loginAutonomous() {
+function loginAutonomous(forcedName) {
   if (!PENDING_GOOGLE_USER) { showAuthError('Error: no hay sesión activa.'); return; }
-  var name = document.getElementById('autonomous-name-input').value.trim();
+  var name = forcedName || (document.getElementById('autonomous-name-input') || {}).value || '';
+  name = name.trim();
   if (!name) { alert('Ingresá tu nombre.'); return; }
   var uid = PENDING_GOOGLE_USER.uid;
 
