@@ -2895,19 +2895,34 @@ function setHelpRole(role) {
       {icon:'👥',title:'Vincular un atleta',steps:['Tu código aparece en la parte superior del <strong>Dashboard</strong>.','Compartile ese código a tu atleta.','El atleta elige "Atleta", ingresa el código y su nombre.','Aparece automáticamente en tu lista.']},
       {icon:'🎯',title:'Asignar una rutina',steps:['En el <strong>Dashboard</strong>, cada atleta tiene un selector de mesociclo.','Elegí el mesociclo → se actualiza en tiempo real para el atleta.']},
       {icon:'🚦',title:'Leer el semáforo',steps:['<span style="color:var(--green)">■ Verde</span>: completó reps + RIR mayor al objetivo → subir peso.','<span style="color:var(--orange)">■ Amarillo</span>: al límite → mantener carga.','<span style="color:var(--red)">■ Rojo</span>: no llegó a las reps → revisar peso o descanso.','Tocá <strong>Ver detalle</strong> para ver el historial completo, stats y salud.']},
-      {icon:'📊',title:'Ver el progreso',steps:['Tocá <strong>Ver detalle</strong> en cualquier atleta.','<strong>Stats</strong>: 1RM estimado, tonelaje, sesiones por mes.','<strong>Salud</strong>: sueño, estrés y energía correlacionados con rendimiento.','<strong>Historial</strong>: todas las sesiones con series completas.']}
+      {icon:'📊',title:'Ver el progreso',steps:['Tocá <strong>Ver detalle</strong> en cualquier atleta.','<strong>Stats</strong>: 1RM estimado, tonelaje, sesiones por mes.','<strong>Salud</strong>: sueño, estrés y energía correlacionados con rendimiento.','<strong>Historial</strong>: todas las sesiones con series completas.']},
+      {icon:'🧠',title:'Conceptos clave',steps:[
+        '<strong>RIR (Reps In Reserve)</strong>: repeticiones que te quedan en el tanque al terminar una serie. RIR 2 = podrías hacer 2 reps más antes de fallar. RIR 0 = llegaste al fallo. Cuanto más bajo, más cerca del límite.',
+        '<strong>1RM estimado</strong>: el peso máximo que podrías levantar una sola vez, calculado automáticamente a partir de las series registradas (fórmula Epley: <code>kg × (1 + reps/30)</code>). Es una estimación — sirve para comparar progreso entre semanas aunque las reps varíen.',
+        '<strong>Tonelaje</strong>: series × reps × kg por sesión. Mide el volumen total de trabajo. Es el indicador de carga acumulada más completo.'
+      ]}
     ],
     athlete: [
       {icon:'🔗',title:'Vincularme a mi entrenador',steps:['Tu entrenador te da un código de 6 letras.','Al crear tu cuenta elegí "Atleta" e ingresá el código.','La próxima vez que abrís la app entrás directo — en cualquier dispositivo.']},
       {icon:'💪',title:'Registrar una sesión',steps:['Abrí <strong>Sesión</strong>, elegí semana y sesión, tocá <strong>Iniciar</strong>.','Completá el check de bienestar.','Cargá reps, kg y RIR para cada serie.','Usá los botones <strong>1MIN / 2MIN / 3MIN</strong> para el descanso.','Al terminar tocá <strong>Finalizar sesión</strong>.']},
       {icon:'📈',title:'Ver mi progreso',steps:['<strong>Stats</strong>: 1RM estimado, peso máximo y tonelaje por ejercicio.','<strong>Salud</strong>: correlación entre bienestar y rendimiento.']},
-      {icon:'⚠️',title:'Si algo no carga',steps:['Cerrá la pestaña y volvé a abrir la URL.','No borres la caché — perdés tu sesión activa.','Si no ves tu rutina, avisale al entrenador para que te asigne el mesociclo.']}
+      {icon:'⚠️',title:'Si algo no carga',steps:['Cerrá la pestaña y volvé a abrir la URL.','No borres la caché — perdés tu sesión activa.','Si no ves tu rutina, avisale al entrenador para que te asigne el mesociclo.']},
+      {icon:'🧠',title:'Conceptos clave',steps:[
+        '<strong>RIR (Reps In Reserve)</strong>: repeticiones que te quedan en el tanque al terminar una serie. Tu entrenador pone un RIR objetivo — si te pide RIR 2, terminá la serie cuando te queden 2 reps antes del fallo. Es más honesto que el RPE y más fácil de aprender.',
+        '<strong>1RM estimado</strong>: el peso máximo que podrías mover una sola vez. FORGE lo calcula automáticamente de tus series — no necesitás llegar al fallo para saberlo. Sirve para ver si estás progresando semana a semana aunque cambien las reps.',
+        '<strong>Peso guía</strong>: el peso de referencia que puso tu entrenador para ese ejercicio. No es una obligación — es el punto de partida. Si el semáforo da verde, la próxima semana probá subir +2.5kg.'
+      ]}
     ],
     autonomous: [
       {icon:'🗺️',title:'Cómo empezar',steps:['<strong>1.</strong> Andá a <strong>Plan</strong> y creá tu mesociclo.','<strong>2.</strong> Agregá sesiones y ejercicios con peso guía, reps y RIR.','<strong>3.</strong> En <strong>Sesión</strong> ya aparece tu rutina para registrar.','<strong>4.</strong> Revisá <strong>Stats</strong> y <strong>Salud</strong> para tomar decisiones.']},
       {icon:'📥',title:'Importar planilla Excel',steps:['En <strong>Plan</strong> tocá <strong>Importar Excel</strong>.','Columnas necesarias: <code>Semana · Sesion · Ejercicio · Grupo · Series · Reps · Kg · RIR · Tempo · Descanso · Indicaciones</code>.','Descargá la plantilla de ejemplo para ver el formato.']},
       {icon:'🚦',title:'Usar el semáforo',steps:['<span style="color:var(--green)">Verde</span>: subí +2.5kg la próxima semana.','<span style="color:var(--orange)">Amarillo</span>: mantené la carga.','<span style="color:var(--red)">Rojo</span>: revisá el peso o el descanso.']},
-      {icon:'❤️',title:'Check de bienestar',steps:['Completá sueño, estrés y energía al iniciar cada sesión.','La pestaña <strong>Salud</strong> cruza esos datos con tu rendimiento.']}
+      {icon:'❤️',title:'Check de bienestar',steps:['Completá sueño, estrés y energía al iniciar cada sesión.','La pestaña <strong>Salud</strong> cruza esos datos con tu rendimiento.']},
+      {icon:'🧠',title:'Conceptos clave',steps:[
+        '<strong>RIR (Reps In Reserve)</strong>: repeticiones que te quedan en el tanque al terminar una serie. Si cargás RIR 2 como objetivo, terminá la serie cuando sientas que podrías hacer 2 más antes de fallar. Es la métrica más importante para la progresión inteligente.',
+        '<strong>1RM estimado</strong>: el peso máximo que podrías mover una sola vez. FORGE lo calcula automáticamente (fórmula Epley) — no necesitás llegar al fallo. Usalo para comparar progreso entre semanas aunque varíes las reps.',
+        '<strong>Cómo usar el semáforo para progresar</strong>: si das verde dos semanas seguidas, subí el peso. Si das amarillo, mantenés. Si das rojo, revisá si el peso es muy alto o si el descanso entre series fue corto.'
+      ]}
     ]
   };
   ['trainer','athlete','autonomous'].forEach(function(r) {
