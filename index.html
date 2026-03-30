@@ -2548,18 +2548,26 @@ function exitDemo() {
 window.onload = function() {
   if (!initFirebase()) return;
 
-  // Auth state listener — fires on every page load
-  // If user is logged into Google AND has a FORGE profile → go straight to app
+  // Handle redirect result first (fires when Google redirects back to the app)
+  AUTH.getRedirectResult().then(function(result) {
+    // result.user is set if this is a redirect callback, null otherwise
+    // onAuthStateChanged below handles both cases
+  }).catch(function(err) {
+    if (err.code !== 'auth/popup-closed-by-user') {
+      showAuthError('Error al iniciar sesión: ' + err.message);
+    }
+  });
+
+  // Auth state listener — fires on every page load after getRedirectResult resolves
   AUTH.onAuthStateChanged(function(googleUser) {
     if (!googleUser) {
-      // Not logged in — show login screen
       showStep('step-google');
       return;
     }
 
     PENDING_GOOGLE_USER = googleUser;
 
-    // Check if this Google UID has a FORGE profile
+    // Check if this Google UID has a FORGE profile in Firebase
     DB.ref('forge/users/' + googleUser.uid).once('value').then(function(snap) {
       var userData = snap.val();
 
@@ -2571,7 +2579,7 @@ window.onload = function() {
         return;
       }
 
-      // Existing user — restore session directly
+      // Existing user — restore session directly, no interaction needed
       CURRENT_UID = googleUser.uid;
       ROLE = userData.role;
       TRAINER_CODE = userData.trainerCode;
