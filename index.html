@@ -12,6 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <style>
 :root{
   --bg:#0c0c0c;--surface:#141414;--surface2:#1c1c1c;--surface3:#242424;
@@ -340,7 +341,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div id="login-content" class="login-box">
     <div class="login-logo">FORGE</div>
     <div class="login-tagline">Training Tracker &mdash; Piloto</div>
-    <div id="role-select-panel">
+
+    <!-- STEP 1: Google Sign In -->
+    <div id="step-google">
+      <button class="btn btn-p btn-full" onclick="signInWithGoogle()" style="font-size:15px;padding:14px;display:flex;align-items:center;justify-content:center;gap:10px">
+        <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0"><path fill="#fff" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#fff" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#fff" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#fff" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+        Continuar con Google
+      </button>
+      <div style="margin-top:20px;text-align:center">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">o explora sin cuenta</div>
+        <button class="btn btn-g btn-full" onclick="loadDemoMode()" style="font-size:13px;padding:11px;letter-spacing:1px">&#9654; Ver demo interactivo</button>
+      </div>
+      <div id="auth-error" style="display:none;margin-top:12px;font-size:12px;color:var(--red);text-align:center;padding:8px;background:rgba(255,69,69,.1);border-radius:4px"></div>
+    </div>
+
+    <!-- STEP 2: Role selection (new users only) -->
+    <div id="step-role" style="display:none">
+      <div style="font-size:13px;color:var(--text-muted);text-align:center;margin-bottom:20px">Hola <strong id="google-name-display" style="color:var(--text)"></strong> — ¿cómo vas a usar FORGE?</div>
       <div class="role-cards">
         <div class="role-card" onclick="selectRole('trainer')">
           <div class="role-card-icon">&#127959;</div>
@@ -353,31 +370,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="role-card-sub">Registro mis entrenamientos</div>
         </div>
       </div>
-      <div style="margin-top:16px;text-align:center">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">o explora sin cuenta</div>
-        <button class="btn btn-p btn-full" onclick="loadDemoMode()" style="font-size:14px;padding:14px;letter-spacing:2px">
-          &#9654; VER DEMO INTERACTIVO
-        </button>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:6px">Datos de ejemplo precargados &mdash; sin registro</div>
+      <div style="margin-top:14px;text-align:center">
+        <button class="btn-logout" onclick="signOutGoogle()">&#8592; Usar otra cuenta</button>
       </div>
     </div>
-    <!-- Trainer form -->
-    <div class="login-form" id="trainer-form">
-      <div class="fg"><label>Tu nombre</label><input type="text" id="trainer-name-input" placeholder="Ej: Marcos Rodriguez"></div>
-      <button class="btn btn-p btn-full" onclick="loginTrainer()">Crear / Entrar como Entrenador</button>
-      <div style="margin-top:10px;text-align:center">
-        <button class="btn-logout" onclick="backToRoles()">&#8592; Volver</button>
-      </div>
+
+    <!-- STEP 3a: Trainer name (first time only) -->
+    <div id="step-trainer" style="display:none">
+      <div class="setup-note">Tu cuenta de Google está vinculada. Confirmá tu nombre para que tus atletas te identifiquen.</div>
+      <div class="fg"><label>Tu nombre como entrenador</label><input type="text" id="trainer-name-input" placeholder="Ej: Juan Garcia"></div>
+      <button class="btn btn-p btn-full" onclick="loginTrainer()">Crear cuenta de entrenador</button>
+      <div style="margin-top:10px;text-align:center"><button class="btn-logout" onclick="backToRoles()">&#8592; Volver</button></div>
     </div>
-    <!-- Athlete form -->
-    <div class="login-form" id="athlete-form">
-      <div class="setup-note"><strong>El entrenador te dara un codigo de 6 letras.</strong><br>Ingresalo junto a tu nombre para vincular tu cuenta.</div>
-      <div class="fg"><label>Codigo del entrenador</label><input type="text" id="athlete-code-input" placeholder="Ej: ABC123" style="text-transform:uppercase;letter-spacing:3px;font-size:18px;text-align:center"></div>
-      <div class="fg"><label>Tu nombre</label><input type="text" id="athlete-name-input" placeholder="Ej: Juan Garcia"></div>
-      <button class="btn btn-p btn-full" onclick="loginAthlete()">Entrar como Atleta</button>
-      <div style="margin-top:10px;text-align:center">
-        <button class="btn-logout" onclick="backToRoles()">&#8592; Volver</button>
-      </div>
+
+    <!-- STEP 3b: Athlete code (first time only) -->
+    <div id="step-athlete" style="display:none">
+      <div class="setup-note"><strong>Tu entrenador te va a dar un código de 6 letras.</strong><br>Ingresalo para vincularte a su cuenta.</div>
+      <div class="fg"><label>Código del entrenador</label><input type="text" id="athlete-code-input" placeholder="Ej: ABC123" style="text-transform:uppercase;letter-spacing:3px;font-size:18px;text-align:center"></div>
+      <button class="btn btn-p btn-full" onclick="loginAthlete()">Vincularme al entrenador</button>
+      <div style="margin-top:10px;text-align:center"><button class="btn-logout" onclick="backToRoles()">&#8592; Volver</button></div>
     </div>
   </div>
 </div>
@@ -540,6 +551,8 @@ var MUSCLE_LIB = ['Pecho','Hombro','Triceps','Espalda','Biceps','Isquio','Cuadri
 // APP STATE
 // ═══════════════════════════════════════
 var DB = null;
+var AUTH = null;
+var CURRENT_UID = null;
 var ROLE = null;           // 'trainer' | 'athlete'
 var TRAINER_CODE = null;   // 6-char code
 var ATHLETE_ID = null;     // trainerCode_athleteName
@@ -584,6 +597,8 @@ function initFirebase() {
   try {
     firebase.initializeApp(FIREBASE_CONFIG);
     DB = firebase.database();
+    AUTH = firebase.auth();
+    AUTH.languageCode = 'es';
     return true;
   } catch(e) {
     alert('Error al inicializar Firebase: ' + e.message);
@@ -600,85 +615,121 @@ function genCode() {
 }
 
 // ═══════════════════════════════════════
-// LOGIN
+// AUTH — Google Sign In
 // ═══════════════════════════════════════
+var PENDING_GOOGLE_USER = null; // holds google user while we check Firebase
+
+function showAuthError(msg) {
+  var el = document.getElementById('auth-error');
+  if (!el) return;
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function showStep(stepId) {
+  ['step-google','step-role','step-trainer','step-athlete'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = id === stepId ? 'block' : 'none';
+  });
+}
+
+function signInWithGoogle() {
+  var provider = new firebase.auth.GoogleAuthProvider();
+  AUTH.signInWithPopup(provider).catch(function(err) {
+    showAuthError('Error al iniciar sesión: ' + err.message);
+  });
+}
+
+function signOutGoogle() {
+  AUTH.signOut();
+  PENDING_GOOGLE_USER = null;
+  showStep('step-google');
+}
+
 function selectRole(role) {
-  document.getElementById('trainer-form').classList.remove('vis');
-  document.getElementById('athlete-form').classList.remove('vis');
-  if (role === 'trainer') document.getElementById('trainer-form').classList.add('vis');
-  else document.getElementById('athlete-form').classList.add('vis');
+  if (role === 'trainer') {
+    var name = PENDING_GOOGLE_USER ? (PENDING_GOOGLE_USER.displayName || '') : '';
+    var inp = document.getElementById('trainer-name-input');
+    if (inp) inp.value = name;
+    showStep('step-trainer');
+  } else {
+    showStep('step-athlete');
+  }
 }
 
 function backToRoles() {
-  document.getElementById('trainer-form').classList.remove('vis');
-  document.getElementById('athlete-form').classList.remove('vis');
+  if (PENDING_GOOGLE_USER) showStep('step-role');
+  else showStep('step-google');
 }
 
 function loginTrainer() {
+  if (!PENDING_GOOGLE_USER) { showAuthError('Error: no hay sesión de Google activa.'); return; }
   var name = document.getElementById('trainer-name-input').value.trim();
   if (!name) { alert('Ingresa tu nombre.'); return; }
+  var uid = PENDING_GOOGLE_USER.uid;
 
-  // Generate or reuse code based on name
-  var savedCode = localStorage.getItem('forge_trainer_code_' + name.toLowerCase().replace(/\s/g,''));
-  if (savedCode) {
-    TRAINER_CODE = savedCode;
-  } else {
-    TRAINER_CODE = genCode();
-    localStorage.setItem('forge_trainer_code_' + name.toLowerCase().replace(/\s/g,''), TRAINER_CODE);
-  }
-  ROLE = 'trainer';
-  USER_NAME = name;
-
-  localStorage.setItem('forge_identity', JSON.stringify({ role: 'trainer', trainerCode: TRAINER_CODE, userName: name }));
-
-  // Create trainer profile in Firebase if it doesn't exist
-  DB.ref('forge/trainers/' + TRAINER_CODE).once('value').then(function(snap) {
-    if (!snap.exists()) {
-      DB.ref('forge/trainers/' + TRAINER_CODE).set({ name: name, code: TRAINER_CODE, createdAt: new Date().toISOString() });
+  // Check if trainer already exists for this UID
+  DB.ref('forge/users/' + uid).once('value').then(function(snap) {
+    var userData = snap.val();
+    if (userData && userData.role === 'trainer') {
+      // Already registered — just load
+      ROLE = 'trainer';
+      TRAINER_CODE = userData.trainerCode;
+      USER_NAME = userData.name;
+      CURRENT_UID = uid;
+      loadTrainerApp();
+      if(window.trackEvent) trackEvent('login', {role:'trainer'});
+      return;
     }
-    loadTrainerApp(); if(window.trackEvent) trackEvent("login",{role:"trainer"});
+    // New trainer — generate code
+    var code = genCode();
+    var profile = { role:'trainer', trainerCode: code, name: name, email: PENDING_GOOGLE_USER.email || '', createdAt: new Date().toISOString() };
+    DB.ref('forge/users/' + uid).set(profile).then(function() {
+      DB.ref('forge/trainers/' + code).set({ name: name, code: code, createdAt: new Date().toISOString() });
+      ROLE = 'trainer'; TRAINER_CODE = code; USER_NAME = name; CURRENT_UID = uid;
+      loadTrainerApp();
+      if(window.trackEvent) trackEvent('login', {role:'trainer', new_user: true});
+    });
   });
 }
 
 function loginAthlete() {
+  if (!PENDING_GOOGLE_USER) { showAuthError('Error: no hay sesión de Google activa.'); return; }
   var code = document.getElementById('athlete-code-input').value.trim().toUpperCase();
-  var name = document.getElementById('athlete-name-input').value.trim();
-  if (!code || code.length !== 6) { alert('Ingresa el codigo de 6 letras del entrenador.'); return; }
-  if (!name) { alert('Ingresa tu nombre.'); return; }
+  if (!code || code.length !== 6) { alert('Ingresa el código de 6 letras del entrenador.'); return; }
+  var uid = PENDING_GOOGLE_USER.uid;
+  var name = PENDING_GOOGLE_USER.displayName || 'Atleta';
 
-  // Check trainer exists
   DB.ref('forge/trainers/' + code).once('value').then(function(snap) {
-    if (!snap.exists()) { alert('Codigo de entrenador no encontrado. Verificalo con tu entrenador.'); return; }
+    if (!snap.exists()) { alert('Código de entrenador no encontrado. Verificalo con tu entrenador.'); return; }
 
-    ROLE = 'athlete';
-    TRAINER_CODE = code;
-    ATHLETE_ID = code + '_' + name.toLowerCase().replace(/\s/g,'_');
-    USER_NAME = name;
+    var athleteId = code + '_' + uid.slice(-8); // use last 8 chars of UID, unique per Google account
+    var profile = { role:'athlete', trainerCode: code, athleteId: athleteId, name: name, email: PENDING_GOOGLE_USER.email || '', createdAt: new Date().toISOString() };
 
-    localStorage.setItem('forge_identity', JSON.stringify({ role: 'athlete', trainerCode: code, athleteId: ATHLETE_ID, userName: name }));
-
-    // Register athlete under trainer
-    DB.ref('forge/trainers/' + code + '/athletes/' + ATHLETE_ID).once('value').then(function(s) {
-      if (!s.exists()) {
-        DB.ref('forge/trainers/' + code + '/athletes/' + ATHLETE_ID).set({ name: name, joinedAt: new Date().toISOString(), assignedMesoId: null });
-      }
-      loadAthleteApp(); if(window.trackEvent) trackEvent("login",{role:"athlete"});
+    DB.ref('forge/users/' + uid).set(profile).then(function() {
+      DB.ref('forge/trainers/' + code + '/athletes/' + athleteId).once('value').then(function(s) {
+        if (!s.exists()) {
+          DB.ref('forge/trainers/' + code + '/athletes/' + athleteId).set({ name: name, joinedAt: new Date().toISOString(), assignedMesoId: null });
+        }
+        ROLE = 'athlete'; TRAINER_CODE = code; ATHLETE_ID = athleteId; USER_NAME = name; CURRENT_UID = uid;
+        loadAthleteApp();
+        if(window.trackEvent) trackEvent('login', {role:'athlete'});
+      });
     });
   });
 }
 
 function logout() {
-  if (!confirm('Cerrar sesión en este dispositivo?')) return;
-  // Unsubscribe all Firebase listeners
+  if (!confirm('Cerrar sesión?')) return;
   unsubHandlers.forEach(function(fn) { fn(); });
   unsubHandlers = [];
-  localStorage.removeItem('forge_identity');
-  ROLE = null; TRAINER_CODE = null; ATHLETE_ID = null; USER_NAME = null;
-  Object.values(statsCharts).forEach(function(c) { try { c.destroy(); } catch(e) {} });
+  ROLE = null; TRAINER_CODE = null; ATHLETE_ID = null; USER_NAME = null; CURRENT_UID = null; PENDING_GOOGLE_USER = null;
+  S = { mesocycles:[], activeMesoId:null }; ATHLETES = {}; LOGS = {}; CW = null; ASSIGNED_MESO = null;
+  Object.values(statsCharts).forEach(function(c){ try{c.destroy();}catch(e){} });
   statsCharts = {};
+  AUTH.signOut();
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').classList.remove('hidden');
-  backToRoles();
+  showStep('step-google');
 }
 
 // ═══════════════════════════════════════
@@ -2495,21 +2546,45 @@ function exitDemo() {
 window.onload = function() {
   if (!initFirebase()) return;
 
-  // Restore identity
-  var saved = localStorage.getItem('forge_identity');
-  if (saved) {
-    try {
-      var id = JSON.parse(saved);
-      ROLE = id.role;
-      TRAINER_CODE = id.trainerCode;
-      ATHLETE_ID = id.athleteId;
-      USER_NAME = id.userName;
-      if (ROLE === 'trainer') loadTrainerApp();
-      else loadAthleteApp();
+  // Auth state listener — fires on every page load
+  // If user is logged into Google AND has a FORGE profile → go straight to app
+  AUTH.onAuthStateChanged(function(googleUser) {
+    if (!googleUser) {
+      // Not logged in — show login screen
+      showStep('step-google');
       return;
-    } catch(e) {}
-  }
-  // Show login
+    }
+
+    PENDING_GOOGLE_USER = googleUser;
+
+    // Check if this Google UID has a FORGE profile
+    DB.ref('forge/users/' + googleUser.uid).once('value').then(function(snap) {
+      var userData = snap.val();
+
+      if (!userData) {
+        // New user — show role selection
+        var nameEl = document.getElementById('google-name-display');
+        if (nameEl) nameEl.textContent = googleUser.displayName || googleUser.email || 'nuevo usuario';
+        showStep('step-role');
+        return;
+      }
+
+      // Existing user — restore session directly
+      CURRENT_UID = googleUser.uid;
+      ROLE = userData.role;
+      TRAINER_CODE = userData.trainerCode;
+      USER_NAME = userData.name;
+
+      if (ROLE === 'trainer') {
+        loadTrainerApp();
+        if(window.trackEvent) trackEvent('session_restore', {role:'trainer'});
+      } else {
+        ATHLETE_ID = userData.athleteId;
+        loadAthleteApp();
+        if(window.trackEvent) trackEvent('session_restore', {role:'athlete'});
+      }
+    });
+  });
 };
 
 document.addEventListener('click', function(e) {
