@@ -433,6 +433,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <section id="section-session" class="section"></section>
   <section id="section-stats" class="section"></section>
   <section id="section-health" class="section"></section>
+  <section id="section-help" class="section"></section>
 </main>
 </div>
 
@@ -861,7 +862,8 @@ function loadTrainerApp() {
   document.getElementById('main-nav').innerHTML =
     '<button id="tab-plan" onclick="switchTab(\'plan\')">Plan</button>' +
     '<button id="tab-dashboard" onclick="switchTab(\'dashboard\')">Dashboard</button>' +
-    '<button id="tab-stats" onclick="switchTab(\'stats\')">Stats</button>';
+    '<button id="tab-stats" onclick="switchTab(\'stats\')">Stats</button>' +
+    '<button id="tab-help" onclick="switchTab(\'help\')">?</button>';
 
   // Subscribe to trainer data
   var trainerRef = DB.ref('forge/trainers/' + TRAINER_CODE);
@@ -909,7 +911,8 @@ function loadAthleteApp() {
   document.getElementById('main-nav').innerHTML =
     '<button id="tab-session" onclick="switchTab(\'session\')">Sesión</button>' +
     '<button id="tab-stats" onclick="switchTab(\'stats\')">Stats</button>' +
-    '<button id="tab-health" onclick="switchTab(\'health\')">Salud</button>';
+    '<button id="tab-health" onclick="switchTab(\'health\')">Salud</button>' +
+    '<button id="tab-help" onclick="switchTab(\'help\')">?</button>';
 
   // Subscribe to assigned mesocycle
   var athRef = DB.ref('forge/trainers/' + TRAINER_CODE + '/athletes/' + ATHLETE_ID);
@@ -966,7 +969,8 @@ function loadAutonomousApp() {
     '<button id="tab-plan" onclick="switchTab(\'plan\')">Plan</button>' +
     '<button id="tab-session" onclick="switchTab(\'session\')">Sesión</button>' +
     '<button id="tab-stats" onclick="switchTab(\'stats\')">Stats</button>' +
-    '<button id="tab-health" onclick="switchTab(\'health\')">Salud</button>';
+    '<button id="tab-health" onclick="switchTab(\'health\')">Salud</button>' +
+    '<button id="tab-help" onclick="switchTab(\'help\')">?</button>';
 
   // Subscribe to own trainer data (mesocycles)
   var trainerRef = DB.ref('forge/trainers/' + TRAINER_CODE);
@@ -1034,6 +1038,7 @@ function renderCurrentTab() {
   else if (activeTab === 'session') renderSession();
   else if (activeTab === 'stats') renderStats();
   else if (activeTab === 'health') renderHealth();
+  else if (activeTab === 'help') renderHelp();
 }
 
 // ═══════════════════════════════════════
@@ -2724,6 +2729,210 @@ function exitDemo() {
   backToRoles();
   var lb = document.querySelector('.btn-logout');
   if (lb) { lb.setAttribute('onclick','logout()'); lb.title='Cerrar sesión'; lb.textContent='✕'; }
+}
+
+
+// ═══════════════════════════════════════
+// SECTION: AYUDA / MANUAL DE USUARIO
+// ═══════════════════════════════════════
+function renderHelp() {
+  var el = document.getElementById('section-help');
+
+  var sections = {
+    trainer: [
+      {
+        icon: '📋', title: 'Crear un plan (mesociclo)',
+        steps: [
+          'Andá a la pestaña <strong>Plan</strong>.',
+          'Tocá <strong>+ Nuevo</strong> para crear un mesociclo desde cero, o <strong>Importar Excel</strong> para subir tu planilla.',
+          'Si importás Excel, el archivo debe tener estas columnas en orden: <code>Semana · Sesion · Ejercicio · Grupo · Series · Reps · Kg · RIR · Tempo · Descanso · Indicaciones</code>.',
+          'Podés descargar una plantilla de ejemplo desde el mismo importador.',
+          'Una vez creado, expandí cada sesión para ver y editar los ejercicios.'
+        ]
+      },
+      {
+        icon: '👥', title: 'Vincular un atleta',
+        steps: [
+          'Tu código de entrenador aparece en la parte superior del <strong>Dashboard</strong>.',
+          'Compartile ese código a tu atleta.',
+          'El atleta abre la app, elige "Atleta", e ingresa el código junto a su nombre.',
+          'Aparece automáticamente en tu lista de atletas.'
+        ]
+      },
+      {
+        icon: '🎯', title: 'Asignar una rutina a un atleta',
+        steps: [
+          'En el <strong>Dashboard</strong>, cada atleta tiene un selector de mesociclo.',
+          'Elegí el mesociclo que querés asignarle y se actualiza en tiempo real.',
+          'El atleta ya puede ver la rutina desde su sesión.'
+        ]
+      },
+      {
+        icon: '🚦', title: 'Leer el semáforo de autorregulación',
+        steps: [
+          '<span style="color:var(--green)">■ Verde</span>: el atleta completó todas las reps con RIR mayor al objetivo. Está listo para subir el peso (+2.5kg sugerido).',
+          '<span style="color:var(--orange)">■ Amarillo</span>: completó las reps pero al límite de su capacidad. Mantener la carga esta semana.',
+          '<span style="color:var(--red)">■ Rojo</span>: no llegó a las reps objetivo. Revisar el peso o el descanso entre series.',
+          'Tocá <strong>Ver detalle</strong> en cada atleta para ver el semáforo de las últimas sesiones, sus stats y su bienestar.'
+        ]
+      },
+      {
+        icon: '📊', title: 'Ver el progreso de un atleta',
+        steps: [
+          'Tocá <strong>Ver detalle</strong> en cualquier atleta del Dashboard.',
+          'La pestaña <strong>Stats</strong> muestra 1RM estimado, tonelaje y sesiones por mes.',
+          'La pestaña <strong>Salud</strong> muestra los gráficos de sueño, estrés y energía correlacionados con el rendimiento.',
+          'La pestaña <strong>Historial</strong> tiene todas las sesiones con los datos de cada serie.'
+        ]
+      }
+    ],
+    athlete: [
+      {
+        icon: '🔗', title: 'Vincularme a mi entrenador',
+        steps: [
+          'Tu entrenador te da un código de 6 letras.',
+          'Al crear tu cuenta elegí "Atleta" e ingresá ese código.',
+          'Quedás vinculado automáticamente. La próxima vez que abras la app entrás directo.'
+        ]
+      },
+      {
+        icon: '💪', title: 'Registrar una sesión',
+        steps: [
+          'Abrí la pestaña <strong>Sesión</strong>.',
+          'Elegí la semana y la sesión del día, luego tocá <strong>Iniciar</strong>.',
+          'Completá el check de bienestar (sueño, estrés, energía) — le sirve a tu entrenador para analizar tu rendimiento.',
+          'Para cada ejercicio, cargá las reps, el kg y el RIR de cada serie.',
+          'El <strong>Peso guía</strong> y el <strong>RIR objetivo</strong> son la referencia que puso tu entrenador.',
+          'Usá los botones <strong>1MIN / 2MIN / 3MIN</strong> para el temporizador de descanso.',
+          'Al terminar todos los ejercicios tocá <strong>Finalizar sesión</strong>.'
+        ]
+      },
+      {
+        icon: '📈', title: 'Ver mi progreso',
+        steps: [
+          'La pestaña <strong>Stats</strong> muestra tu evolución: 1RM estimado, peso máximo y tonelaje por ejercicio.',
+          'Usá el selector de ejercicio y el período (3M, 6M, 1A) para filtrar.',
+          'La pestaña <strong>Salud</strong> muestra la correlación entre tu bienestar y tu rendimiento.'
+        ]
+      },
+      {
+        icon: '⚠️', title: 'Si algo no carga',
+        steps: [
+          'Si ves un spinner que no termina, cerrá la pestaña y volvé a abrir la URL.',
+          'No borres la caché ni los datos del navegador — perdés tu sesión activa.',
+          'Si no ves tu rutina, avisale a tu entrenador para que te asigne el mesociclo desde su dashboard.'
+        ]
+      }
+    ],
+    autonomous: [
+      {
+        icon: '🗺️', title: 'Flujo recomendado para empezar',
+        steps: [
+          '<strong>1.</strong> Andá a <strong>Plan</strong> y creá tu primer mesociclo (desde cero, importando Excel, o con el editor).',
+          '<strong>2.</strong> Agregá tus sesiones y ejercicios con peso guía, reps objetivo y RIR.',
+          '<strong>3.</strong> Volvé a <strong>Sesión</strong> — tu rutina ya va a estar disponible para registrar.',
+          '<strong>4.</strong> Después de algunas sesiones, revisá <strong>Stats</strong> y <strong>Salud</strong> para tomar decisiones de progresión.'
+        ]
+      },
+      {
+        icon: '📥', title: 'Importar tu planilla de Excel',
+        steps: [
+          'En <strong>Plan</strong>, tocá <strong>Importar Excel</strong>.',
+          'El archivo debe tener estas columnas: <code>Semana · Sesion · Ejercicio · Grupo · Series · Reps · Kg · RIR · Tempo · Descanso · Indicaciones</code>.',
+          'Descargá la plantilla de ejemplo si querés ver el formato exacto.',
+          'Una vez importado, podés editar cualquier ejercicio directamente en la app.'
+        ]
+      },
+      {
+        icon: '🚦', title: 'Usar el semáforo para progresar',
+        steps: [
+          'Después de cada sesión, el semáforo te dice si subir peso o no.',
+          '<span style="color:var(--green)">Verde</span> → subí +2.5kg la próxima semana.',
+          '<span style="color:var(--orange)">Amarillo</span> → mantené la carga, todavía no estás listo.',
+          '<span style="color:var(--red)">Rojo</span> → revisá el peso o el descanso entre series.',
+          'Lo ves en el <strong>Dashboard</strong> o en <strong>Ver detalle</strong> de la sección Sesión.'
+        ]
+      },
+      {
+        icon: '❤️', title: 'Check de bienestar',
+        steps: [
+          'Al iniciar cada sesión, completá el check de sueño, estrés y energía.',
+          'La pestaña <strong>Salud</strong> cruza esos datos con tu rendimiento.',
+          'Así podés identificar si tu progreso se ve afectado por el descanso o el estrés.'
+        ]
+      }
+    ]
+  };
+
+  var html = '<div class="sec-title">AYUDA</div>';
+
+  // Role selector
+  var roles = [
+    {id:'trainer', lbl:'🏋️ Entrenador', show: ROLE === 'trainer'},
+    {id:'athlete', lbl:'🤸 Atleta', show: ROLE === 'athlete'},
+    {id:'autonomous', lbl:'🎯 Autónomo', show: ROLE === 'autonomous'}
+  ];
+  var activeRole = ROLE === 'trainer' ? 'trainer' : (ROLE === 'autonomous' ? 'autonomous' : 'athlete');
+
+  html += '<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">';
+  roles.forEach(function(r) {
+    var active = r.id === activeRole;
+    html += '<button onclick="setHelpRole(\''+r.id+'\')" id="help-btn-'+r.id+'" class="btn '+(active?'btn-p':'btn-g')+'" style="font-size:12px;padding:7px 14px">'+r.lbl+'</button>';
+  });
+  html += '</div>';
+
+  html += '<div id="help-content">';
+  html += buildHelpContent(sections[activeRole]);
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+function setHelpRole(role) {
+  var allSections = {
+    trainer: [
+      {icon:'📋',title:'Crear un plan (mesociclo)',steps:['Andá a la pestaña <strong>Plan</strong>.','Tocá <strong>+ Nuevo</strong> para crear desde cero, o <strong>Importar Excel</strong> para subir tu planilla.','El archivo debe tener: <code>Semana · Sesion · Ejercicio · Grupo · Series · Reps · Kg · RIR · Tempo · Descanso · Indicaciones</code>.','Podés descargar una plantilla de ejemplo desde el importador.','Expandí cada sesión para editar los ejercicios.']},
+      {icon:'👥',title:'Vincular un atleta',steps:['Tu código aparece en la parte superior del <strong>Dashboard</strong>.','Compartile ese código a tu atleta.','El atleta elige "Atleta", ingresa el código y su nombre.','Aparece automáticamente en tu lista.']},
+      {icon:'🎯',title:'Asignar una rutina',steps:['En el <strong>Dashboard</strong>, cada atleta tiene un selector de mesociclo.','Elegí el mesociclo → se actualiza en tiempo real para el atleta.']},
+      {icon:'🚦',title:'Leer el semáforo',steps:['<span style="color:var(--green)">■ Verde</span>: completó reps + RIR mayor al objetivo → subir peso.','<span style="color:var(--orange)">■ Amarillo</span>: al límite → mantener carga.','<span style="color:var(--red)">■ Rojo</span>: no llegó a las reps → revisar peso o descanso.','Tocá <strong>Ver detalle</strong> para ver el historial completo, stats y salud.']},
+      {icon:'📊',title:'Ver el progreso',steps:['Tocá <strong>Ver detalle</strong> en cualquier atleta.','<strong>Stats</strong>: 1RM estimado, tonelaje, sesiones por mes.','<strong>Salud</strong>: sueño, estrés y energía correlacionados con rendimiento.','<strong>Historial</strong>: todas las sesiones con series completas.']}
+    ],
+    athlete: [
+      {icon:'🔗',title:'Vincularme a mi entrenador',steps:['Tu entrenador te da un código de 6 letras.','Al crear tu cuenta elegí "Atleta" e ingresá el código.','La próxima vez que abrís la app entrás directo — en cualquier dispositivo.']},
+      {icon:'💪',title:'Registrar una sesión',steps:['Abrí <strong>Sesión</strong>, elegí semana y sesión, tocá <strong>Iniciar</strong>.','Completá el check de bienestar.','Cargá reps, kg y RIR para cada serie.','Usá los botones <strong>1MIN / 2MIN / 3MIN</strong> para el descanso.','Al terminar tocá <strong>Finalizar sesión</strong>.']},
+      {icon:'📈',title:'Ver mi progreso',steps:['<strong>Stats</strong>: 1RM estimado, peso máximo y tonelaje por ejercicio.','<strong>Salud</strong>: correlación entre bienestar y rendimiento.']},
+      {icon:'⚠️',title:'Si algo no carga',steps:['Cerrá la pestaña y volvé a abrir la URL.','No borres la caché — perdés tu sesión activa.','Si no ves tu rutina, avisale al entrenador para que te asigne el mesociclo.']}
+    ],
+    autonomous: [
+      {icon:'🗺️',title:'Cómo empezar',steps:['<strong>1.</strong> Andá a <strong>Plan</strong> y creá tu mesociclo.','<strong>2.</strong> Agregá sesiones y ejercicios con peso guía, reps y RIR.','<strong>3.</strong> En <strong>Sesión</strong> ya aparece tu rutina para registrar.','<strong>4.</strong> Revisá <strong>Stats</strong> y <strong>Salud</strong> para tomar decisiones.']},
+      {icon:'📥',title:'Importar planilla Excel',steps:['En <strong>Plan</strong> tocá <strong>Importar Excel</strong>.','Columnas necesarias: <code>Semana · Sesion · Ejercicio · Grupo · Series · Reps · Kg · RIR · Tempo · Descanso · Indicaciones</code>.','Descargá la plantilla de ejemplo para ver el formato.']},
+      {icon:'🚦',title:'Usar el semáforo',steps:['<span style="color:var(--green)">Verde</span>: subí +2.5kg la próxima semana.','<span style="color:var(--orange)">Amarillo</span>: mantené la carga.','<span style="color:var(--red)">Rojo</span>: revisá el peso o el descanso.']},
+      {icon:'❤️',title:'Check de bienestar',steps:['Completá sueño, estrés y energía al iniciar cada sesión.','La pestaña <strong>Salud</strong> cruza esos datos con tu rendimiento.']}
+    ]
+  };
+  ['trainer','athlete','autonomous'].forEach(function(r) {
+    var btn = document.getElementById('help-btn-'+r);
+    if (btn) btn.className = 'btn ' + (r===role ? 'btn-p' : 'btn-g');
+  });
+  var hc = document.getElementById('help-content');
+  if (hc) hc.innerHTML = buildHelpContent(allSections[role] || []);
+}
+
+function buildHelpContent(sectionList) {
+  var html = '';
+  sectionList.forEach(function(sec) {
+    html += '<div class="card" style="margin-bottom:16px">';
+    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">';
+    html += '<span style="font-size:22px">' + sec.icon + '</span>';
+    html += '<div style="font-family:var(--font-d);font-size:20px;letter-spacing:1px">' + sec.title + '</div>';
+    html += '</div>';
+    html += '<ol style="padding-left:18px;display:flex;flex-direction:column;gap:8px">';
+    sec.steps.forEach(function(step) {
+      html += '<li style="font-size:13px;color:var(--dim);line-height:1.6">' + step + '</li>';
+    });
+    html += '</ol></div>';
+  });
+  return html;
 }
 
 // ═══════════════════════════════════════
