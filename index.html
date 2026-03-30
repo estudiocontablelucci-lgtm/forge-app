@@ -1661,7 +1661,10 @@ function renderSession() {
   var el = document.getElementById('section-session');
 
   if (!ASSIGNED_MESO) {
-    el.innerHTML = '<div class="sec-title">SESIÓN HOY</div><div class="sec-sub">Tu sesión de entrenamiento</div><div class="empty-state"><span>⏳</span>Tu entrenador aun no te asigno un mesociclo.<br>Avisale para que lo haga desde su dashboard.</div>';
+    var emptyMsg = (ROLE === 'autonomous')
+      ? 'Todavía no hay un plan de entrenamiento cargado.<br>Andá a la sección <strong style="color:var(--accent)">Plan</strong> para crear o importar tu rutina.'
+      : 'Tu entrenador aún no te asignó un mesociclo.<br>Avisale para que lo haga desde su dashboard.';
+    el.innerHTML = '<div class="sec-title">SESIÓN HOY</div><div class="sec-sub">Tu sesión de entrenamiento</div><div class="empty-state"><span>⏳</span>' + emptyMsg + '</div>';
     return;
   }
 
@@ -2739,7 +2742,7 @@ window.onload = function() {
       if (!userData) {
         // Logged in but no FORGE profile yet — show role selection
         var nameEl = document.getElementById('google-name-display');
-        if (nameEl) nameEl.textContent = user.displayName || user.email || 'nuevo usuario';
+        if (nameEl) nameEl.textContent = '¡Hola!';
         showStep('step-role');
         return;
       }
