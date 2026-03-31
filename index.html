@@ -35,23 +35,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:
 .tip-dismiss{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;margin-left:auto;padding:0 0 0 8px;flex-shrink:0;line-height:1}
 .tip-dismiss:hover{color:var(--dim)}
 
-/* HEADER */
-header{position:sticky;top:0;z-index:200;background:rgba(12,12,12,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 8px;height:54px;display:flex;align-items:center;gap:4px}
-.logo{font-family:var(--font-d);font-size:20px;letter-spacing:2px;color:var(--accent);white-space:nowrap;flex-shrink:0}
-.logo small{font-family:var(--font-b);font-size:9px;letter-spacing:2px;color:var(--text-muted);display:block;line-height:1;margin-top:-2px;text-transform:uppercase}
-nav{display:flex;gap:0;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}-webkit-scrollbar{display:none}
-nav button{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:var(--font-b);font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:6px 9px;cursor:pointer;transition:all .15s;white-space:nowrap}
+/* HEADER — two rows */
+header{position:sticky;top:0;z-index:200;background:rgba(12,12,12,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0}
+.hdr-row1{display:flex;align-items:center;justify-content:space-between;padding:0 12px;height:42px;border-bottom:1px solid rgba(255,255,255,.04)}
+.hdr-row2{display:flex;height:38px;padding:0 4px}
+.logo{font-family:var(--font-d);font-size:20px;letter-spacing:2px;color:var(--accent);white-space:nowrap;display:flex;align-items:center;gap:8px}
+.logo small{font-family:var(--font-b);font-size:9px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;font-weight:400}
+nav{display:flex;gap:0;width:100%;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:0 13px;cursor:pointer;transition:all .15s;white-space:nowrap;height:100%}
 nav button:hover{color:var(--text)}
 nav button.active{color:var(--accent);border-bottom-color:var(--accent)}
-.hdr-right{display:flex;align-items:center;gap:2px;flex-shrink:0;margin-left:auto}
-.role-badge{font-size:11px;padding:4px 6px;border-radius:2px;white-space:nowrap;line-height:1;display:flex;align-items:center;gap:3px}.role-badge .badge-text{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.hdr-right{display:flex;align-items:center;gap:6px}
+.role-badge{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:2px;white-space:nowrap;line-height:1}
 .role-trainer{background:rgba(197,242,48,.15);color:var(--accent);border:1px solid rgba(197,242,48,.3)}
 .role-athlete{background:rgba(96,165,250,.15);color:var(--blue);border:1px solid rgba(96,165,250,.3)}
 .btn-logout{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:4px 6px;border-radius:var(--r);transition:color .15s;line-height:1}
 .btn-logout:hover{color:var(--red)}
 
 /* MAIN */
-main{max-width:900px;margin:0 auto;padding:24px 16px 80px}
+main{max-width:900px;margin:0 auto;padding:20px 16px 80px}
 .section{display:none}.section.active{display:block}
 .sec-title{font-family:var(--font-d);font-size:36px;letter-spacing:2px;line-height:1;margin-bottom:3px}
 .sec-sub{font-size:12px;color:var(--text-muted);margin-bottom:22px}
@@ -419,11 +422,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- MAIN APP -->
 <div id="app" style="display:none">
 <header>
-  <div class="logo">FORGE<small>Training Tracker</small></div>
-  <nav id="main-nav"></nav>
-  <div class="hdr-right">
-    <div id="role-badge-hdr"></div>
-    <button class="btn-logout" onclick="logout()" title="Cerrar sesión">&#10005;</button>
+  <div class="hdr-row1">
+    <div class="logo">FORGE<small>Training Tracker</small></div>
+    <div class="hdr-right">
+      <div id="role-badge-hdr"></div>
+      <button class="btn-logout" onclick="logout()" title="Cerrar sesión">&#10005;</button>
+    </div>
+  </div>
+  <div class="hdr-row2">
+    <nav id="main-nav"></nav>
   </div>
 </header>
 
@@ -442,6 +449,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <section id="section-health" class="section"></section>
   <section id="section-help" class="section"></section>
   <section id="section-progress" class="section"></section>
+  <section id="section-history" class="section"></section>
 </main>
 </div>
 
@@ -943,6 +951,7 @@ function loadAthleteApp() {
     '<button id="tab-stats" onclick="switchTab(\'stats\')">Stats</button>' +
     '<button id="tab-health" onclick="switchTab(\'health\')">Salud</button>' +
     '<button id="tab-progress" onclick="switchTab(\'progress\')">&#127942; Progreso</button>' +
+    '<button id="tab-history" onclick="switchTab(\'history\')">&#128196; Historial</button>' +
     '<button id="tab-help" onclick="switchTab(\'help\')">?</button>';
 
   // Subscribe to assigned mesocycle
@@ -975,6 +984,7 @@ function loadAthleteApp() {
     if (activeTab === 'stats') renderStats();
     if (activeTab === 'health') renderHealth();
     if (activeTab === 'progress') renderProgress();
+    if (activeTab === 'history') renderHistory();
   });
   unsubHandlers.push(function() { myLogsRef.off('value', myLogsHandler); });
 
@@ -1003,6 +1013,7 @@ function loadAutonomousApp() {
     '<button id="tab-stats" onclick="switchTab(\'stats\')">Stats</button>' +
     '<button id="tab-health" onclick="switchTab(\'health\')">Salud</button>' +
     '<button id="tab-progress" onclick="switchTab(\'progress\')">&#127942; Progreso</button>' +
+    '<button id="tab-history" onclick="switchTab(\'history\')">&#128196; Historial</button>' +
     '<button id="tab-help" onclick="switchTab(\'help\')">?</button>';
 
   // Subscribe to own trainer data (mesocycles)
@@ -1073,6 +1084,7 @@ function renderCurrentTab() {
   else if (activeTab === 'health') renderHealth();
   else if (activeTab === 'help') renderHelp();
   else if (activeTab === 'progress') renderProgress();
+  else if (activeTab === 'history') renderHistory();
 }
 
 // ═══════════════════════════════════════
@@ -3269,6 +3281,110 @@ function getMostTrainedExercise(logs) {
   var best = null;
   Object.values(counts).forEach(function(e) { if (!best || e.count > best.count) best = e; });
   return best;
+}
+
+
+// ═══════════════════════════════════════
+// SECTION: HISTORIAL (athlete + autonomous)
+// ═══════════════════════════════════════
+var historyOpenLog = null; // which logId is expanded
+
+function renderHistory() {
+  var el = document.getElementById('section-history');
+  if (!el) return;
+
+  var myLogs = getMyLogs().slice().reverse(); // most recent first
+
+  if (!myLogs.length) {
+    el.innerHTML = '<div class="sec-title">HISTORIAL</div>' +
+      '<div class="empty-state"><span>📋</span>Completá tu primera sesión para ver tu historial acá.</div>';
+    return;
+  }
+
+  var html = '<div class="sec-title">HISTORIAL</div>';
+  html += '<div class="sec-sub">Todas tus sesiones — tocá una para ver el detalle</div>';
+
+  myLogs.forEach(function(log) {
+    var isOpen = historyOpenLog === log.id;
+    var totalSets = 0;
+    var maxKg = 0;
+    if (log.exercises) {
+      log.exercises.forEach(function(ex) {
+        if (ex.sets) ex.sets.forEach(function(s) {
+          if (s.reps || s.kg) totalSets++;
+          if ((parseFloat(s.kg)||0) > maxKg) maxKg = parseFloat(s.kg)||0;
+        });
+      });
+    }
+
+    html += '<div class="card" style="margin-bottom:8px;padding:0;overflow:hidden">';
+
+    // ── HEADER ROW (always visible, tap to expand) ──
+    html += '<div onclick="toggleHistory(\''+log.id+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;user-select:none">';
+    html += '<div>';
+    html += '<div style="font-size:14px;font-weight:700">'+fmtDate(log.date)+'</div>';
+    html += '<div style="font-size:12px;color:var(--dim);margin-top:2px">'+log.sessionName.split('-')[0].trim()+' &middot; Sem. '+log.weekNumber;
+    if (log.durationMinutes) html += ' &middot; '+log.durationMinutes+' min';
+    html += '</div></div>';
+    html += '<div style="display:flex;align-items:center;gap:10px">';
+    if (maxKg) html += '<span style="font-size:12px;color:var(--dim)">'+maxKg+'kg max</span>';
+    html += '<span style="color:var(--text-muted);font-size:14px;transition:transform .2s;'+(isOpen?'transform:rotate(180deg)':'')+'">&#9662;</span>';
+    html += '</div></div>';
+
+    // ── DETAIL TABLE (expanded) ──
+    if (isOpen && log.exercises && log.exercises.length) {
+      html += '<div style="border-top:1px solid var(--border);padding:0 14px 14px">';
+
+      log.exercises.forEach(function(ex) {
+        var validSets = ex.sets ? ex.sets.filter(function(s){ return s.reps || s.kg; }) : [];
+        if (!validSets.length) return;
+
+        html += '<div style="margin-top:12px">';
+        html += '<div style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">'+ex.exerciseName+'</div>';
+
+        // Table
+        html += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+        html += '<thead><tr style="color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase">';
+        html += '<th style="text-align:left;padding:3px 6px;width:32px">Set</th>';
+        html += '<th style="text-align:center;padding:3px 6px">Reps</th>';
+        html += '<th style="text-align:center;padding:3px 6px">Kg</th>';
+        html += '<th style="text-align:center;padding:3px 6px">RIR</th>';
+        html += '</tr></thead><tbody>';
+
+        validSets.forEach(function(s, i) {
+          var bg = i % 2 === 0 ? 'background:var(--surface2)' : '';
+          html += '<tr style="'+bg+'">';
+          html += '<td style="padding:5px 6px;color:var(--muted);font-size:11px">'+(i+1)+'</td>';
+          html += '<td style="padding:5px 6px;text-align:center;font-weight:600">'+(s.reps||'—')+'</td>';
+          html += '<td style="padding:5px 6px;text-align:center;font-weight:600;color:var(--accent)">'+(s.kg||'—')+'</td>';
+          html += '<td style="padding:5px 6px;text-align:center;color:var(--dim)">'+(s.rir !== '' && s.rir !== null && s.rir !== undefined ? s.rir : '—')+'</td>';
+          html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+      });
+
+      // Health summary if available
+      if (log.health && (log.health.sleep || log.health.stress)) {
+        html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;gap:12px;flex-wrap:wrap">';
+        if (log.health.sleep) html += '<span>&#128164; '+log.health.sleep+'hs de sueño</span>';
+        if (log.health.stress) html += '<span>Estrés: '+log.health.stress+'/5</span>';
+        if (log.health.energy) html += '<span>Energía: '+log.health.energy+'/5</span>';
+        if (log.health.notes) html += '<span style="font-style:italic">'+log.health.notes+'</span>';
+        html += '</div>';
+      }
+
+      html += '</div>'; // detail
+    }
+
+    html += '</div>'; // card
+  });
+
+  el.innerHTML = html;
+}
+
+function toggleHistory(logId) {
+  historyOpenLog = (historyOpenLog === logId) ? null : logId;
+  renderHistory();
 }
 
 // ═══════════════════════════════════════
