@@ -514,6 +514,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="fg"><label>Nombre</label><input id="nm-name" type="text" placeholder="Ej: Hipertrofia II - PPL"></div>
     <div class="fg"><label>Semanas</label><input id="nm-weeks" type="number" value="4" min="1" max="16"></div>
     <div class="divider"></div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Plantilla rápida</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+      <button type="button" class="btn btn-g" style="font-size:11px;padding:5px 10px" onclick="applyTemplate('4day')">4 días / semana</button>
+      <button type="button" class="btn btn-g" style="font-size:11px;padding:5px 10px" onclick="applyTemplate('ppl')">PPL (3 días)</button>
+      <button type="button" class="btn btn-g" style="font-size:11px;padding:5px 10px" onclick="applyTemplate('fullbody')">Full Body (3 días)</button>
+      <button type="button" class="btn btn-g" style="font-size:11px;padding:5px 10px" onclick="applyTemplate('torso')">Torso/Pierna (4 días)</button>
+    </div>
+    <div class="divider"></div>
     <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">Sesiones</div>
     <div id="nm-sessions-list"></div>
     <button class="add-ex-btn" onclick="addNMSession()">+ Agregar sesion</button>
@@ -951,7 +959,7 @@ function loadAthleteApp() {
     '<button id="tab-stats" onclick="switchTab(\'stats\')">📈 Stats</button>' +
     '<button id="tab-health" onclick="switchTab(\'health\')">❤️ Salud</button>' +
     '<button id="tab-progress" onclick="switchTab(\'progress\')">Progreso</button>' +
-    '<button id="tab-history" onclick="switchTab(\'history\')">Historial</button>' +
+    '<button id="tab-history" onclick="switchTab(\'history\')">📋 Historial</button>' +
     '<button id="tab-help" onclick="switchTab(\'help\')">❓ Ayuda</button>';
 
   // Subscribe to assigned mesocycle
@@ -1013,7 +1021,7 @@ function loadAutonomousApp() {
     '<button id="tab-stats" onclick="switchTab(\'stats\')">📈 Stats</button>' +
     '<button id="tab-health" onclick="switchTab(\'health\')">❤️ Salud</button>' +
     '<button id="tab-progress" onclick="switchTab(\'progress\')">Progreso</button>' +
-    '<button id="tab-history" onclick="switchTab(\'history\')">Historial</button>' +
+    '<button id="tab-history" onclick="switchTab(\'history\')">📋 Historial</button>' +
     '<button id="tab-help" onclick="switchTab(\'help\')">❓ Ayuda</button>';
 
   // Subscribe to own trainer data (mesocycles)
@@ -1318,6 +1326,39 @@ function renderPlan() {
   el.innerHTML = html;
 }
 
+
+function renameSess(mesoId, sessId) {
+  var m = S.mesocycles.filter(function(m){ return m.id===mesoId; })[0]; if(!m) return;
+  var sess = m.sessions.filter(function(s){ return s.id===sessId; })[0]; if(!sess) return;
+  var newName = prompt('Nuevo nombre para la sesión:', sess.name);
+  if (!newName || !newName.trim()) return;
+  sess.name = newName.trim();
+  saveMesocycles();
+}
+
+function delSess(mesoId, sessId) {
+  var m = S.mesocycles.filter(function(m){ return m.id===mesoId; })[0]; if(!m) return;
+  if (m.sessions.length <= 1) { alert('El mesociclo debe tener al menos una sesión.'); return; }
+  var sess = m.sessions.filter(function(s){ return s.id===sessId; })[0]; if(!sess) return;
+  if (!confirm('¿Eliminar la sesión "'+sess.name+'"?\n\nNota: los logs ya registrados de esta sesión quedan en el historial — no se pierden.')) return;
+  var idx = m.sessions.indexOf(sess);
+  m.sessions = m.sessions.filter(function(s){ return s.id!==sessId; });
+  saveMesocycles();
+  showToast('Sesión eliminada: '+sess.name, function() {
+    m.sessions.splice(idx, 0, sess);
+    saveMesocycles();
+  });
+}
+
+function addSessToMeso(mesoId) {
+  var m = S.mesocycles.filter(function(m){ return m.id===mesoId; })[0]; if(!m) return;
+  var name = prompt('Nombre de la nueva sesión:', 'Sesión ' + (m.sessions.length+1));
+  if (!name || !name.trim()) return;
+  m.sessions.push({ id:uid(), name:name.trim(), exercises:[] });
+  saveMesocycles();
+  showToast('Sesión agregada: '+name.trim(), null);
+}
+
 function toggleSess(bodyId, chevId) {
   var b = document.getElementById(bodyId);
   var c = document.getElementById(chevId);
@@ -1384,8 +1425,53 @@ function confirmAddEx() {
 }
 
 var nmSess = [];
+
+function applyTemplate(type) {
+  var templates = {
+    '4day': {
+      name: 'Hipertrofia 4 días',
+      sessions: [
+        'Push A - Pecho/Hombro/Tríceps',
+        'Pull A - Espalda/Bíceps',
+        'Legs A - Cuádriceps/Glúteos',
+        'Push B / Pull B - Upper Complementario'
+      ]
+    },
+    'ppl': {
+      name: 'PPL - 3 días',
+      sessions: [
+        'Push - Pecho/Hombro/Tríceps',
+        'Pull - Espalda/Bíceps',
+        'Legs - Cuádriceps/Isquios/Glúteos'
+      ]
+    },
+    'fullbody': {
+      name: 'Full Body - 3 días',
+      sessions: [
+        'Full Body A',
+        'Full Body B',
+        'Full Body C'
+      ]
+    },
+    'torso': {
+      name: 'Torso/Pierna - 4 días',
+      sessions: [
+        'Torso A - Empuje',
+        'Pierna A - Cuádriceps',
+        'Torso B - Tracción',
+        'Pierna B - Isquios/Glúteos'
+      ]
+    }
+  };
+  var t = templates[type]; if (!t) return;
+  nmSess = t.sessions.map(function(name){ return {name:name}; });
+  var nameInput = document.getElementById('nm-name');
+  if (nameInput && !nameInput.value.trim()) nameInput.value = t.name;
+  renderNMSess();
+}
+
 function showModalCreate() {
-  nmSess = [{name:'Push'},{name:'Pull'},{name:'Legs'}];
+  nmSess = [{name:'Push - Pecho/Hombro/Tríceps'},{name:'Pull - Espalda/Bíceps'},{name:'Legs A - Cuádriceps/Glúteos'},{name:'Full Body / Complementario'}];
   document.getElementById('nm-name').value = '';
   document.getElementById('nm-weeks').value = '4';
   renderNMSess();
