@@ -1837,7 +1837,9 @@ function renderSession() {
     html += '<option value="'+i+'">S'+(i+1)+': '+s.name.split('-')[0].trim()+'</option>';
   });
   html += '</select></div>';
-  html += '<button class="btn btn-p" onclick="startSession()">Iniciar &#9654;</button>';
+  // Warn if selected session has no exercises
+  html += '<div id="sess-warn" style="display:none;font-size:12px;color:var(--orange);margin-top:8px;padding:6px 10px;background:rgba(255,140,66,.1);border-radius:4px;border-left:3px solid var(--orange)">⚠️ Esta sesión no tiene ejercicios. Agregá ejercicios desde 📋 Plan primero.</div>';
+  html += '<button class="btn btn-p" onclick="startSession()" style="margin-top:8px">Iniciar &#9654;</button>';
   html += '</div></div>';
   html += buildTip('session_start', '💡', '<strong>Tip:</strong> completá el RIR honestamente — es la clave para que el semáforo te diga si podés subir el peso la próxima semana. RIR 2 = te quedan 2 reps antes del fallo.');
   html += '<div id="workout-area"></div>';
@@ -1846,11 +1848,28 @@ function renderSession() {
   if (next) { var pw=document.getElementById('pick-week'); var ps=document.getElementById('pick-sess'); if(pw)pw.value=next.weekNumber; if(ps)ps.value=next.sessionIndex; }
 }
 
+
+function checkSessWarn(sel) {
+  var warn = document.getElementById('sess-warn');
+  if (!warn || !ASSIGNED_MESO) return;
+  var si = parseInt(sel.value);
+  var sess = ASSIGNED_MESO.sessions[si];
+  var empty = !sess || !sess.exercises || sess.exercises.length === 0;
+  warn.style.display = empty ? 'block' : 'none';
+}
+
 function startSession() {
   var meso = ASSIGNED_MESO;
   var week = parseInt(document.getElementById('pick-week').value);
   var si = parseInt(document.getElementById('pick-sess').value);
   var sess = meso.sessions[si];
+
+  // Validate session has exercises
+  if (!sess.exercises || sess.exercises.length === 0) {
+    showToast('Esta sesión no tiene ejercicios. Agregá ejercicios desde la pestaña 📋 Plan antes de iniciar.', null);
+    return;
+  }
+
   var logId = uid();
 
   var log = {
