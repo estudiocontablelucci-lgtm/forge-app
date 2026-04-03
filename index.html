@@ -958,7 +958,7 @@ function loadAthleteApp() {
     '<button id="tab-session" onclick="switchTab(\'session\')">💪 Sesión</button>' +
     '<button id="tab-stats" onclick="switchTab(\'stats\')">📈 Stats</button>' +
     '<button id="tab-health" onclick="switchTab(\'health\')">❤️ Salud</button>' +
-    '<button id="tab-progress" onclick="switchTab(\'progress\')">🏆 Progreso</button>' +
+    '<button id="tab-progress" onclick="switchTab(\'progress\')">Progreso</button>' +
     '<button id="tab-history" onclick="switchTab(\'history\')">📋 Historial</button>' +
     '<button id="tab-help" onclick="switchTab(\'help\')">❓ Ayuda</button>';
 
@@ -1020,7 +1020,7 @@ function loadAutonomousApp() {
     '<button id="tab-session" onclick="switchTab(\'session\')">💪 Sesión</button>' +
     '<button id="tab-stats" onclick="switchTab(\'stats\')">📈 Stats</button>' +
     '<button id="tab-health" onclick="switchTab(\'health\')">❤️ Salud</button>' +
-    '<button id="tab-progress" onclick="switchTab(\'progress\')">🏆 Progreso</button>' +
+    '<button id="tab-progress" onclick="switchTab(\'progress\')">Progreso</button>' +
     '<button id="tab-history" onclick="switchTab(\'history\')">📋 Historial</button>' +
     '<button id="tab-help" onclick="switchTab(\'help\')">❓ Ayuda</button>';
 
@@ -1033,16 +1033,16 @@ function loadAutonomousApp() {
     S.activeMesoId = data.activeMesoId || (S.mesocycles.length ? S.mesocycles[0].id : null);
     ATHLETES = data.athletes || {};
 
-    // Auto-assign active meso to self
+    // Auto-assign active meso to self — always use activeMesoId directly
+    // (don't wait for Firebase roundtrip on selfAth.assignedMesoId)
     var selfAth = ATHLETES[ATHLETE_ID];
-    if (selfAth && S.activeMesoId && selfAth.assignedMesoId !== S.activeMesoId) {
-      DB.ref('forge/trainers/'+TRAINER_CODE+'/athletes/'+ATHLETE_ID+'/assignedMesoId').set(S.activeMesoId);
-    }
-
-    // Set ASSIGNED_MESO for session view
-    var assignedId = selfAth ? selfAth.assignedMesoId : null;
-    if (!assignedId && S.activeMesoId) assignedId = S.activeMesoId;
+    var assignedId = S.activeMesoId;  // autonomous always follows activeMesoId
     ASSIGNED_MESO = assignedId ? (S.mesocycles.filter(function(m){ return m.id===assignedId; })[0] || null) : null;
+
+    // Keep Firebase in sync (fire-and-forget)
+    if (selfAth && assignedId && selfAth.assignedMesoId !== assignedId) {
+      DB.ref('forge/trainers/'+TRAINER_CODE+'/athletes/'+ATHLETE_ID+'/assignedMesoId').set(assignedId);
+    }
 
     if (activeTab === 'plan') renderPlan();
     if (activeTab === 'session') renderSession();
@@ -2873,7 +2873,7 @@ function switchDemoView(view) {
       '<button id="tab-session" onclick="switchTab(\'session\')">💪 Sesión</button>' +
       '<button id="tab-stats" onclick="switchTab(\'stats\')">📈 Stats</button>' +
       '<button id="tab-health" onclick="switchTab(\'health\')">❤️ Salud</button>' +
-      '<button id="tab-progress" onclick="switchTab(\'progress\')">🏆 Progreso</button>';
+      '<button id="tab-progress" onclick="switchTab(\'progress\')">Progreso</button>';
     switchTab('health');
   }
 }
