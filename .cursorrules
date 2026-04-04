@@ -1,0 +1,7 @@
+Lee y respetá el contexto definido en:
+- CLAUDE.md (convenciones y stack)
+- CONTEXT.md (estado actual del proyecto)
+- decisions.md (decisiones tomadas y zonas protegidas)
+- analysis.md (último análisis de subagentes)
+
+Antes de cualquier implementación confirmá que leíste los cuatro.

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 apply_fixes.py)",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(python apply_fixes.py)",
+      "Bash(python -c \":*)",
+      "Bash(node --check /tmp/forge_check.js)",
+      "Bash(node --check \"C:/Users/agust/AppData/Local/Temp/forge_check.js\")"
+    ]
+  }
+}
