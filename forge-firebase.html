@@ -461,7 +461,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="fg"><label>Grupo muscular</label><input id="ae-muscle" type="text" list="muscle-library" autocomplete="off" placeholder="Ej: Pecho"><datalist id="muscle-library"></datalist></div>
     <div class="row4">
       <div class="fg"><label>Series</label><input id="ae-sets" type="number" value="3" min="1" max="10"></div>
-      <div class="fg"><label>Reps</label><input id="ae-reps" type="text" value="10" placeholder="ej: 8-10"></div>
+      <div class="fg"><label>Reps</label><input id="ae-reps" type="number" value="10" min="1" max="100"></div>
       <div class="fg"><label>Kg</label><input id="ae-weight" type="number" value="0" min="0" step="0.5"></div>
       <div class="fg"><label>RIR</label><input id="ae-rir" type="number" value="2" min="0" max="5"></div>
     </div>
@@ -1002,8 +1002,6 @@ function loadAthleteApp() {
   if (savedCW) {
     try { CW = JSON.parse(savedCW); } catch(e) { CW = null; }
   }
-  // Rebuild session snapshot if resuming a workout
-  if (CW && ASSIGNED_MESO) SESSION_MESO_SNAPSHOT = JSON.parse(JSON.stringify(ASSIGNED_MESO));
 
   switchTab('session');
 }
@@ -1069,8 +1067,6 @@ function loadAutonomousApp() {
   // Restore current workout
   var savedCW = localStorage.getItem('forge_cw_' + ATHLETE_ID);
   if (savedCW) { try { CW = JSON.parse(savedCW); } catch(e) { CW = null; } }
-  // Rebuild session snapshot if resuming a workout
-  if (CW && ASSIGNED_MESO) SESSION_MESO_SNAPSHOT = JSON.parse(JSON.stringify(ASSIGNED_MESO));
 
   switchTab('session');
 }
@@ -1186,18 +1182,6 @@ function calc1RM(kg, reps) {
   return Math.round(parseFloat(kg) * (1 + parseFloat(reps)/30));
 }
 
-function parseRepRange(val) {
-  var s = String(val || '').trim();
-  if (s.indexOf('-') > 0) {
-    var parts = s.split('-');
-    var mn = parseInt(parts[0]) || 0;
-    var mx = parseInt(parts[1]) || mn;
-    return { min: mn, max: mx, display: s };
-  }
-  var n = parseInt(s) || 0;
-  return { min: n, max: n, display: String(n) };
-}
-
 function isSessDone(mesoId, week, sessId, athleteId) {
   var aid = athleteId || ATHLETE_ID;
   return Object.values(LOGS).some(function(l) {
@@ -1239,8 +1223,7 @@ function getExSemaphore(log, ex, exDef) {
   var validSets = ex.sets.filter(function(s) { return s.reps !== '' && s.kg !== ''; });
   if (!validSets.length) return { color: 'gray', label: 'Sin datos', suggestion: 'Sin datos registrados' };
 
-  var repRange = parseRepRange(exDef.guideReps || 10);
-  var guideReps = repRange.min;
+  var guideReps = exDef.guideReps || 10;
   var guideRir = exDef.guideRir != null ? exDef.guideRir : 2;
 
   var repsOk = validSets.every(function(s) { return (parseFloat(s.reps)||0) >= guideReps; });
@@ -1324,7 +1307,7 @@ function renderPlan() {
         if(ex.restTime) html += ' &middot; Desc: '+ex.restTime;
         html += '</div></div>';
         html += '<input type="number" value="'+(ex.targetSets||3)+'" min="1" max="10" onchange="updateGuide(\''+meso.id+'\',\''+sess.id+'\',\''+ex.id+'\',\'targetSets\',this.value)">';
-        html += '<input type="text" value="'+(ex.guideReps||10)+'" placeholder="ej: 8-10" style="font-size:12px" onchange="updateGuide(\''+meso.id+'\',\''+sess.id+'\',\''+ex.id+'\',\'guideReps\',this.value)">';
+        html += '<input type="number" value="'+(ex.guideReps||10)+'" min="1" max="100" onchange="updateGuide(\''+meso.id+'\',\''+sess.id+'\',\''+ex.id+'\',\'guideReps\',this.value)">';
         html += '<input type="number" value="'+(ex.guideWeight||0)+'" min="0" step="0.5" onchange="updateGuide(\''+meso.id+'\',\''+sess.id+'\',\''+ex.id+'\',\'guideWeight\',this.value)">';
         html += '<input type="number" value="'+(ex.guideRir!=null?ex.guideRir:2)+'" min="0" max="5" onchange="updateGuide(\''+meso.id+'\',\''+sess.id+'\',\''+ex.id+'\',\'guideRir\',this.value)">';
         html += '<button class="del-btn" onclick="delEx(\''+meso.id+'\',\''+sess.id+'\',\''+ex.id+'\')">&#10005;</button>';
@@ -1389,8 +1372,7 @@ function updateGuide(mesoId, sessId, exId, field, val) {
   var m = S.mesocycles.filter(function(m) { return m.id===mesoId; })[0];
   var s = m.sessions.filter(function(s) { return s.id===sessId; })[0];
   var e = s.exercises.filter(function(e) { return e.id===exId; })[0];
-  if (field === 'guideReps' && String(val).indexOf('-') > 0) { e[field] = val; }
-  else { e[field] = (field==='targetSets'||field==='guideRir'||field==='guideReps') ? parseInt(val) : (field==='guideWeight' ? parseFloat(val) : val); }
+  e[field] = (field==='targetSets'||field==='guideRir'||field==='guideReps') ? parseInt(val) : (field==='guideWeight' ? parseFloat(val) : val);
   saveMesocycles();
 }
 
@@ -1432,7 +1414,7 @@ function confirmAddEx() {
     id: uid(), name: name,
     muscleGroup: document.getElementById('ae-muscle').value.trim(),
     targetSets: parseInt(document.getElementById('ae-sets').value)||3,
-    guideReps: document.getElementById('ae-reps').value.trim().indexOf('-') > 0 ? document.getElementById('ae-reps').value.trim() : (parseInt(document.getElementById('ae-reps').value)||10),
+    guideReps: parseInt(document.getElementById('ae-reps').value)||10,
     guideWeight: parseFloat(document.getElementById('ae-weight').value)||0,
     guideRir: parseInt(document.getElementById('ae-rir').value)||2,
     tempo: document.getElementById('ae-tempo').value.trim(),
@@ -1851,7 +1833,7 @@ function renderSession() {
   html += '<div class="fg"><label>Semana</label><select id="pick-week">';
   for (var i=1; i<=meso.weeksCount; i++) html += '<option value="'+i+'">Semana '+i+'</option>';
   html += '</select></div>';
-  html += '<div class="fg"><label>💪 Sesión</label><select id="pick-sess" onchange="checkSessWarn(this)">';
+  html += '<div class="fg"><label>💪 Sesión</label><select id="pick-sess">';
   meso.sessions.forEach(function(s, i) {
     html += '<option value="'+i+'">S'+(i+1)+': '+s.name.split('-')[0].trim()+'</option>';
   });
@@ -1865,9 +1847,6 @@ function renderSession() {
   el.innerHTML = html;
   var next = findNextIncompleteMeso(meso, ATHLETE_ID);
   if (next) { var pw=document.getElementById('pick-week'); var ps=document.getElementById('pick-sess'); if(pw)pw.value=next.weekNumber; if(ps)ps.value=next.sessionIndex; }
-  // Auto-check warn for initially selected session
-  var pickSess = document.getElementById('pick-sess');
-  if (pickSess) checkSessWarn(pickSess);
 }
 
 
@@ -1905,14 +1884,14 @@ function startSession() {
     exercises: sess.exercises.map(function(ex) {
       return {
         exerciseId: ex.id, exerciseName: ex.name, muscleGroup: ex.muscleGroup,
-        sets: Array.from({ length: ex.targetSets }, function() { return { reps:'', kg:'', rir:'' }; })
+        sets: Array.from({ length: ex.targetSets }, function() { return { reps:'', kg: ex.guideWeight ? String(ex.guideWeight) : '', rir:'' }; })
       };
     })
   };
 
   saveLog(log);
   LOGS[logId] = log;  // store locally immediately — don't wait for Firebase callback
-  SESSION_MESO_SNAPSHOT = JSON.parse(JSON.stringify(ASSIGNED_MESO));
+  SESSION_MESO_SNAPSHOT = JSON.parse(JSON.stringify(meso));
   CW = { logId: logId, exerciseIndex: 0, healthDone: false };
   saveCW();
   startSessionClock();
@@ -1975,7 +1954,8 @@ function renderWorkout() {
   if (!CW.healthDone) { renderHealthCheck(); return; }
 
   var meso = SESSION_MESO_SNAPSHOT || ASSIGNED_MESO;
-  var sess = meso ? meso.sessions.filter(function(s) { return s.id===log.sessionId; })[0] : null;
+  if (!meso) { el.innerHTML = '<div class="loading"><span>&#8635;</span>Cargando...</div>'; return; }
+  var sess = meso.sessions.filter(function(s) { return s.id===log.sessionId; })[0];
   var total = log.exercises.length;
   var idx = CW.exerciseIndex;
   if (idx >= total) { finishSession(); return; }
@@ -2013,7 +1993,7 @@ function renderWorkout() {
   html += '<span class="ex-muscle-tag">'+exLog.muscleGroup+'</span></div>';
   html += '<div class="guide-band">';
   html += '<div class="guide-item"><div class="guide-val">'+(exDef?exDef.targetSets:'-')+'</div><div class="guide-lbl">Series</div></div>';
-  html += '<div class="guide-item"><div class="guide-val">'+(exDef?parseRepRange(exDef.guideReps).display||'-':'-')+'</div><div class="guide-lbl">Reps obj.</div></div>';
+  html += '<div class="guide-item"><div class="guide-val">'+(exDef?(exDef.guideReps||'-'):'-')+'</div><div class="guide-lbl">Reps obj.</div></div>';
   html += '<div class="guide-item"><div class="guide-val">'+(exDef?exDef.guideWeight+'kg':'-')+'</div><div class="guide-lbl">Peso guia</div>'+(lastW?'<div class="guide-hint">Ult: '+lastW+'kg</div>':'')+'</div>';
   html += '<div class="guide-item"><div class="guide-val">RIR '+(exDef!=null?exDef.guideRir:'-')+'</div><div class="guide-lbl">Objetivo</div></div>';
   if (best1RM > 0) html += '<div class="guide-item"><div class="guide-val" style="color:var(--purple)">'+best1RM+'kg</div><div class="guide-lbl">1RM est.</div></div>';
@@ -2459,12 +2439,8 @@ function stopSessionClock() { clearInterval(sessionClockInterval); sessionClockI
 // ═══════════════════════════════════════
 // REST TIMER
 // ═══════════════════════════════════════
-var timerStartedAt = 0;
-var timerTotalSecs = 0;
 function startTimer(secs) {
   clearInterval(timerInterval);
-  timerStartedAt = Date.now();
-  timerTotalSecs = secs;
   timerSecs = secs; timerExpired = false;
   var box = document.getElementById('rest-timer');
   var disp = document.getElementById('timer-display');
@@ -2473,8 +2449,7 @@ function startTimer(secs) {
   disp.className = 'timer-big'; ok.classList.remove('vis');
   updateTimerDisplay();
   timerInterval = setInterval(function() {
-    var elapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
-    timerSecs = timerTotalSecs - elapsed;
+    timerSecs--;
     updateTimerDisplay();
     if (timerSecs <= 0 && !timerExpired) {
       timerExpired = true;
@@ -2692,7 +2667,7 @@ function importCSV() {
 
   var sessions = sessOrder.map(function(sesName) {
     var exercises = week1Sessions[sesName].map(function(r) {
-      var repsNum = (String(r.reps).indexOf('-') > 0) ? r.reps : (parseInt(r.reps) || 10);
+      var repsNum = parseInt(r.reps) || 10;
       return {
         id: uid(),
         name: r.ejercicio,
@@ -3245,7 +3220,7 @@ function renderProgress() {
         html += '<div><div class="sem-ex-name">'+item.exLog.exerciseName+'</div>';
         html += '<div class="sem-ex-detail">'+item.sem.detail+'</div></div></div>';
         html += '<div class="sem-right"><div class="sem-suggestion '+item.sem.color+'">'+item.sem.suggestion+'</div>';
-        html += '<div class="sem-reps-detail">'+(item.exDef ? 'Obj: '+parseRepRange(item.exDef.guideReps).display+'r RIR '+item.exDef.guideRir : '')+'</div>';
+        html += '<div class="sem-reps-detail">'+(item.exDef ? 'Obj: '+item.exDef.guideReps+'r RIR '+item.exDef.guideRir : '')+'</div>';
         if (deltaHtml) html += '<div>'+deltaHtml+'</div>';
         html += '</div></div>';
       });
