@@ -625,6 +625,7 @@ var CW = null; // { logId, exerciseIndex, healthDone }
 var SESSION_MESO_SNAPSHOT = null;
 
 var unsubHandlers = [];
+var openSessions = {};
 
 
 // ═══════════════════════════════════════
@@ -1103,18 +1104,22 @@ function renderCurrentTab() {
 // ═══════════════════════════════════════
 // FIREBASE SAVE HELPERS
 // ═══════════════════════════════════════
+var saveMesoTimeout = null;
 function saveMesocycles() {
   if (IS_DEMO) return;
-  var mesoObj = {};
-  S.mesocycles.forEach(function(m) { mesoObj[m.id] = m; });
-  DB.ref('forge/trainers/' + TRAINER_CODE + '/mesocycles').set(mesoObj);
-  DB.ref('forge/trainers/' + TRAINER_CODE + '/activeMesoId').set(S.activeMesoId);
-  // For autonomous: keep self auto-assigned to active meso
-  if (ROLE === 'autonomous' && S.activeMesoId && ATHLETE_ID) {
-    DB.ref('forge/trainers/'+TRAINER_CODE+'/athletes/'+ATHLETE_ID+'/assignedMesoId').set(S.activeMesoId);
-    ASSIGNED_MESO = S.mesocycles.filter(function(m){ return m.id===S.activeMesoId; })[0] || null;
-    showToast('Plan actualizado \u2713', null);
-  }
+  clearTimeout(saveMesoTimeout);
+  saveMesoTimeout = setTimeout(function() {
+    var mesoObj = {};
+    S.mesocycles.forEach(function(m) { mesoObj[m.id] = m; });
+    DB.ref('forge/trainers/' + TRAINER_CODE + '/mesocycles').set(mesoObj);
+    DB.ref('forge/trainers/' + TRAINER_CODE + '/activeMesoId').set(S.activeMesoId);
+    // For autonomous: keep self auto-assigned to active meso
+    if (ROLE === 'autonomous' && S.activeMesoId && ATHLETE_ID) {
+      DB.ref('forge/trainers/'+TRAINER_CODE+'/athletes/'+ATHLETE_ID+'/assignedMesoId').set(S.activeMesoId);
+      ASSIGNED_MESO = S.mesocycles.filter(function(m){ return m.id===S.activeMesoId; })[0] || null;
+      showToast('Plan actualizado \u2713', null);
+    }
+  }, 800);
 }
 
 function saveLog(log) {
@@ -1254,6 +1259,16 @@ function renderPlan() {
   var el = document.getElementById('section-plan');
   if (ROLE !== 'trainer' && ROLE !== 'autonomous') { el.innerHTML = ''; return; }
 
+  if (CW) {
+    el.innerHTML = '<div class="sec-title">MESOCICLO</div>'
+      + '<div class="card" style="text-align:center;padding:32px 16px">'
+      + '<span style="font-size:32px;display:block;margin-bottom:10px">&#128274;</span>'
+      + '<div style="font-size:14px;font-weight:600;margin-bottom:6px">Sesi&#243;n en curso</div>'
+      + '<div style="font-size:12px;color:var(--text-muted)">No pod&#233;s editar el plan mientras ten&#233;s una sesi&#243;n activa.<br>Finaliz&#225; o cancel&#225; la sesi&#243;n desde <strong style="color:var(--accent)">&#128170; Sesi&#243;n</strong> para volver al editor.</div>'
+      + '</div>';
+    return;
+  }
+
   var meso = getMeso();
   var mesoOptions = S.mesocycles.map(function(m) {
     return '<option value="'+m.id+'"'+(m.id===S.activeMesoId?' selected':'')+'>'+m.name+'</option>';
@@ -1330,6 +1345,16 @@ function renderPlan() {
     html += '</div>';
   }
   el.innerHTML = html;
+  // Restore open accordion state
+  Object.keys(openSessions).forEach(function(id) {
+    if (openSessions[id]) {
+      var b = document.getElementById(id);
+      var chevId = id.replace('sb-', 'chv-');
+      var c = document.getElementById(chevId);
+      if (b) b.classList.add('open');
+      if (c) c.classList.add('open');
+    }
+  });
 }
 
 
@@ -1368,7 +1393,7 @@ function addSessToMeso(mesoId) {
 function toggleSess(bodyId, chevId) {
   var b = document.getElementById(bodyId);
   var c = document.getElementById(chevId);
-  if (b) { var open = b.classList.toggle('open'); if(c) c.classList.toggle('open', open); }
+  if (b) { var open = b.classList.toggle('open'); if(c) c.classList.toggle('open', open); openSessions[bodyId] = open; }
 }
 
 function onMesoChange(id) { S.activeMesoId = id; saveMesocycles(); }

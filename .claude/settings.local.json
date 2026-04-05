@@ -9,7 +9,8 @@
       "Bash(node --check /tmp/forge_check.js)",
       "Bash(node --check \"C:/Users/agust/AppData/Local/Temp/forge_check.js\")",
       "Bash(python apply_notif.py)",
-      "Bash(python apply_all.py)"
+      "Bash(python apply_all.py)",
+      "Bash(python apply_fix.py)"
     ]
   }
 }
