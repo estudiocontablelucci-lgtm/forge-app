@@ -924,7 +924,8 @@ function loadTrainerApp() {
     // Load athletes
     ATHLETES = data.athletes || {};
     // Reload current tab
-    if (activeTab) renderCurrentTab();
+    if (activeTab === 'plan' && planHasFocus()) { /* skip — user editing */ }
+    else if (activeTab) renderCurrentTab();
   });
   unsubHandlers.push(function() { trainerRef.off('value', handler); });
 
@@ -1050,7 +1051,7 @@ function loadAutonomousApp() {
       DB.ref('forge/trainers/'+TRAINER_CODE+'/athletes/'+ATHLETE_ID+'/assignedMesoId').set(assignedId);
     }
 
-    if (activeTab === 'plan') renderPlan();
+    if (activeTab === 'plan' && !planHasFocus()) renderPlan();
     if (activeTab === 'session' && !CW) renderSession();
     if (activeTab === 'dashboard') renderDashboard();
   });
@@ -1255,6 +1256,13 @@ function getExSemaphore(log, ex, exDef) {
 // ═══════════════════════════════════════
 // SECTION: PLAN (trainer)
 // ═══════════════════════════════════════
+function planHasFocus() {
+  var sec = document.getElementById('section-plan');
+  if (!sec) return false;
+  var active = document.activeElement;
+  return active && sec.contains(active) && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+}
+
 function renderPlan() {
   var el = document.getElementById('section-plan');
   if (ROLE !== 'trainer' && ROLE !== 'autonomous') { el.innerHTML = ''; return; }

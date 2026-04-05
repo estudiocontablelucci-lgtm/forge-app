@@ -24,6 +24,8 @@ el celular en el gym, sin gráficos ni estadísticas, fue el pain point inicial.
 | Pestaña 📋 Historial | ✅ Sesiones expandibles con tabla serie/reps/kg/RIR |
 | Plantillas de mesociclo | ✅ PPL, Full Body, Torso/Pierna, 4 días |
 | Gestión de sesiones del plan | ✅ Agregar, renombrar, eliminar sesiones |
+| Bloqueo plan durante sesión | ✅ renderPlan() muestra candado si CW activo |
+| Acordeón persistente en Plan | ✅ openSessions + debounce 800ms en saveMesocycles |
 | Cancelar/retroceder en sesión | ✅ ✕ cancelar + ← volver al ejercicio anterior |
 | Tips contextuales | ✅ Guías descartables por sección |
 | Header dos filas | ✅ Logo+badge en fila 1, tabs full-width en fila 2 |
@@ -244,7 +246,7 @@ Auth real, schema Turso, billing MercadoPago, Next.js 14.
 
 ### Fase 2 — Producto
 PWA offline, notificaciones push, mensajería interna entrenador↔atleta,
-plantillas de mesociclos predefinidas (PPL, Full Body, Torso/Pierna).
+export de historial a Excel (sesiones + semáforo + PRs, client-side con SheetJS).
 
 ### Fase 3 — Escala
 Multi-trainer por gimnasio, roles múltiples (autónomo + atleta vinculado),

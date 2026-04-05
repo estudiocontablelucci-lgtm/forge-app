@@ -288,4 +288,36 @@ personalizadas con IA revisadas por tu coach — sin que te tome 2 horas por cli
 
 ---
 
+---
+
+## 11. Features de exportación de datos
+
+### Export de historial a Excel
+
+**Descripción**: el entrenador y el atleta pueden descargar un Excel con el historial completo de sesiones, semáforo y métricas de progreso.
+
+**Casos de uso**:
+- Entrenador: reporte de un atleta para análisis externo o reunión de revisión
+- Atleta autónomo: backup de datos, análisis personal
+- Atleta vinculado: ver su progreso en formato tabla
+
+**Contenido del Excel**:
+
+Hoja 1 — Historial de sesiones:
+`Fecha | Semana | Sesión | Ejercicio | Serie | Reps | Kg | RIR | 1RM est. | Semáforo | Sueño | Estrés | Energía`
+
+Hoja 2 — PRs por ejercicio:
+`Ejercicio | Mejor 1RM | Fecha | Peso real | Reps`
+
+Hoja 3 — Resumen:
+`Sesiones por semana | Tonelaje total | Tendencia`
+
+**Stack técnico**: SheetJS ya está cargado para el importador — misma librería para exportar. Client-side, sin backend.
+
+**Limitación**: color de celda en semáforo requiere SheetJS Pro. Con versión gratuita: texto "Verde/Amarillo/Rojo" o emoji.
+
+**Prioridad**: Fase 2 (post-piloto, junto con notificaciones y mensajería).
+
+---
+
 *Actualizado el 2026-03-30. Revisar después del feedback del piloto (1 mes).*

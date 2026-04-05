@@ -476,3 +476,46 @@ forge/users/{uid} = {
 
 **Variable**: `var historyOpenLog = null`
 **Comportamiento**: almacena el `logId` de la sesión expandida en la pestaña Historial. Al hacer reload se pierde — el historial vuelve a mostrar todo colapsado. Comportamiento esperado y aceptable.
+
+
+---
+
+## 8. Decisiones de UX — Plan durante sesión activa
+
+### Bloqueo del Plan cuando hay sesión activa (Opción A)
+
+**Decisión**: `renderPlan()` muestra un card de bloqueo si `CW !== null`. El usuario no puede editar el plan mientras entrena.
+
+**Alternativas descartadas**:
+- Warning no bloqueante: confuso — el usuario puede creer que los cambios aplican
+- Pausar/reanudar sesión: agrega estado complejo (`CW.paused`), más superficie de bugs
+
+**Por qué**: elimina toda la categoría de bugs Plan↔Sesión de una vez. El snapshot `SESSION_MESO_SNAPSHOT` sigue existiendo como seguridad adicional, pero ya no es necesario en el flujo normal.
+
+---
+
+## 9. Decisiones técnicas — Plan (accordion y debounce)
+
+### `openSessions` — persistencia del estado del acordeón
+
+**Variable global**: `var openSessions = {}`
+
+**Clave**: `bodyId` (`sb-{week}-{sessionIndex}`)
+
+**Llenado**: `toggleSess()` actualiza `openSessions[bodyId] = open` en cada toggle.
+
+**Restauración**: `renderPlan()` después de `el.innerHTML = html` recorre `openSessions` y restaura `.open` en body y chevron.
+
+**Por qué**: `saveMesocycles()` → Firebase → listener → `renderPlan()` reconstruye todo el HTML. Sin `openSessions`, el acordeón siempre vuelve cerrado al editar cualquier campo.
+
+---
+
+### Debounce de 800ms en `saveMesocycles()`
+
+**Variable global**: `var saveMesoTimeout = null`
+
+**Implementación**: `clearTimeout(saveMesoTimeout)` + `setTimeout(fn, 800)`.
+
+**Por qué**: cada keystroke en un input del plan disparaba una escritura a Firebase → listener → re-render. Con debounce, Firebase solo se escribe 800ms después de la última tecla. Reduce re-renders innecesarios y escrituras a Firebase.
+
+**Trade-off**: si el usuario cierra el browser dentro de los 800ms posteriores al último cambio, los datos no se guardan. Aceptable para el piloto.
