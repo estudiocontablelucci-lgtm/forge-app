@@ -1264,6 +1264,7 @@ function planHasFocus() {
 }
 
 function renderPlan() {
+  console.log('[renderPlan] CW=', CW, 'ROLE=', ROLE);
   var el = document.getElementById('section-plan');
   if (ROLE !== 'trainer' && ROLE !== 'autonomous') { el.innerHTML = ''; return; }
 
@@ -1997,7 +1998,26 @@ function renderWorkout() {
   var el = document.getElementById('workout-area');
   if (!el || !CW) return;
   var log = LOGS[CW.logId];
-  if (!log) { el.innerHTML = '<div class="loading"><span>&#8635;</span>Cargando...</div>'; return; }
+  if (!log) {
+    // Log not in memory yet - fetch directly from Firebase
+    el.innerHTML = '<div class="loading"><span>&#8635;</span>Cargando...</div>';
+    if (!IS_DEMO && DB) {
+      DB.ref('forge/logs/' + CW.logId).once('value').then(function(snap) {
+        var fetched = normalizeLog(snap.val());
+        if (fetched) {
+          LOGS[fetched.id] = fetched;
+          renderWorkout();
+        } else {
+          // Log doesn't exist - session was lost, clean up
+          CW = null;
+          SESSION_MESO_SNAPSHOT = null;
+          saveCW();
+          renderSession();
+        }
+      });
+    }
+    return;
+  }
   if (log.completed) { showFinish(); return; }
 
   if (!CW.healthDone) { renderHealthCheck(); return; }
