@@ -1268,7 +1268,13 @@ function renderPlan() {
   var el = document.getElementById('section-plan');
   if (ROLE !== 'trainer' && ROLE !== 'autonomous') { el.innerHTML = ''; return; }
 
-  if (CW) {
+  var cwCheck = CW || (function() {
+    try {
+      var saved = localStorage.getItem('forge_cw_' + ATHLETE_ID);
+      return saved ? JSON.parse(saved) : null;
+    } catch(e) { return null; }
+  })();
+  if (cwCheck) {
     el.innerHTML = '<div class="sec-title">MESOCICLO</div>'
       + '<div class="card" style="text-align:center;padding:32px 16px">'
       + '<span style="font-size:32px;display:block;margin-bottom:10px">&#128274;</span>'
