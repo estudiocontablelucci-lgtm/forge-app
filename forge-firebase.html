@@ -968,9 +968,13 @@ function loadAthleteApp() {
   var athHandler = athRef.on('value', function(snap) {
     var athData = snap.val() || {};
     var assignedId = athData.assignedMesoId;
+    var prevMesoId = ASSIGNED_MESO ? ASSIGNED_MESO.id : null;
     if (assignedId) {
       DB.ref('forge/trainers/' + TRAINER_CODE + '/mesocycles/' + assignedId).once('value').then(function(mesoSnap) {
         ASSIGNED_MESO = normalizeMeso(mesoSnap.val());
+        if (prevMesoId && ASSIGNED_MESO && prevMesoId !== ASSIGNED_MESO.id) {
+          showPlanUpdatedBanner('Tu entrenador actualiz&#243; tu rutina &#127919;');
+        }
         if (activeTab === 'session' && !CW) renderSession();
       });
     } else {
@@ -1109,6 +1113,7 @@ function saveMesocycles() {
   if (ROLE === 'autonomous' && S.activeMesoId && ATHLETE_ID) {
     DB.ref('forge/trainers/'+TRAINER_CODE+'/athletes/'+ATHLETE_ID+'/assignedMesoId').set(S.activeMesoId);
     ASSIGNED_MESO = S.mesocycles.filter(function(m){ return m.id===S.activeMesoId; })[0] || null;
+    showToast('Plan actualizado \u2713', null);
   }
 }
 
@@ -1809,6 +1814,17 @@ function viewAthleteDetail(athId, tab) {
 // ═══════════════════════════════════════
 // SECTION: SESSION (athlete)
 // ═══════════════════════════════════════
+function showPlanUpdatedBanner(msg) {
+  var old = document.getElementById('plan-updated-banner');
+  if (old) old.remove();
+  var banner = document.createElement('div');
+  banner.id = 'plan-updated-banner';
+  banner.style.cssText = 'background:rgba(197,242,48,.1);border:1px solid rgba(197,242,48,.3);border-left:3px solid var(--accent);border-radius:4px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--text)';
+  banner.innerHTML = '<span>'+msg+'</span><button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 0 0 12px">&#10005;</button>';
+  var section = document.getElementById('section-session');
+  if (section) section.insertBefore(banner, section.firstChild);
+}
+
 function renderSession() {
   var el = document.getElementById('section-session');
 
